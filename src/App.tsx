@@ -13,6 +13,24 @@ import { DashboardData, AuditItem, SocialPage, DEFAULT_PAGES } from './types';
 import WorkspaceInsights from './components/WorkspaceInsights';
 import ContributorPortal from './components/ContributorPortal';
 
+const AUDIT_STORAGE_KEY = 'samarth_audit_items';
+
+const readLocalAuditItems = (): AuditItem[] => {
+  try {
+    const cached = localStorage.getItem(AUDIT_STORAGE_KEY);
+    if (!cached) return [];
+    const parsed = JSON.parse(cached);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn('Local audit storage reset');
+    return [];
+  }
+};
+
+const writeLocalAuditItems = (items: AuditItem[]) => {
+  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(items));
+};
+
 export default function App() {
   // Current Selected Tab
   const [activeTab, setActiveTab] = useState<'insights' | 'contributor'>('insights');
@@ -125,7 +143,7 @@ export default function App() {
     try {
       const response = await fetch("/api/dashboard-data");
       if (!response.ok) {
-        throw new Error("HTTP connection failed matching port 3000 mapping.");
+        throw new Error("Server storage unavailable");
       }
       const json = await response.json();
       setData({
@@ -133,7 +151,7 @@ export default function App() {
       });
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Failed to fetch content data.');
+      setData({ auditItems: readLocalAuditItems() });
     } finally {
       setIsLoading(false);
       setIsSyncing(false);
@@ -148,15 +166,35 @@ export default function App() {
 
   // 1. Audit Items
   const handleAddAuditItem = async (item: Omit<AuditItem, 'id'>) => {
+    const localItem: AuditItem = {
+      ...item,
+      id: "aud-" + Date.now(),
+      views: Number(item.views) || 0,
+      reach: Number(item.reach) || 0,
+      likes: Number(item.likes) || 0,
+      comments: Number(item.comments) || 0,
+      shares: Number(item.shares) || 0,
+      completionRate: Number(item.completionRate) || 0
+    };
+
     try {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create", item })
       });
-      if (res.ok) fetchDashboardData(true);
+      if (res.ok) {
+        await fetchDashboardData(true);
+        return;
+      }
+      throw new Error("Server storage unavailable");
     } catch (e) {
       console.error(e);
+      setData(prev => {
+        const nextAuditItems = [...prev.auditItems, localItem];
+        writeLocalAuditItems(nextAuditItems);
+        return { auditItems: nextAuditItems };
+      });
     }
   };
 
@@ -308,7 +346,7 @@ export default function App() {
           {/* Sync notification message banner if any */}
           {errorMessage && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg font-medium">
-              Error linking to workspace: {errorMessage}. Check developer terminal configs.
+              {errorMessage}
             </div>
           )}
 
