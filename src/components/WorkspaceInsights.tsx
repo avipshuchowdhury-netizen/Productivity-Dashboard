@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { TrendingUp, Users, Target, ThumbsUp, Activity, Smartphone, Play, MapPin, Globe, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy } from 'lucide-react';
 
 interface Props {
   auditItems: AuditItem[];
@@ -9,19 +9,17 @@ interface Props {
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
 }
 
-type ContributorMetric = 'views' | 'engagement' | 'posts' | 'completion';
+type TrendMetric = 'views' | 'likes' | 'comments' | 'shares';
+type ContributorMetric = 'performance' | 'posts' | 'views' | 'likes' | 'comments' | 'shares';
 
 type ContributorStat = {
   name: string;
   count: number;
   views: number;
-  reach: number;
   likes: number;
   comments: number;
   shares: number;
-  engagement: number;
-  avgCompletion: number;
-  engagementRate: number;
+  performance: number;
   topPlatform: AuditItem['platform'];
 };
 
@@ -31,12 +29,12 @@ export default function WorkspaceInsights({
   activePlatform, 
   onChangePlatform 
 }: Props) {
-  const [selectedMetric, setSelectedMetric] = useState<'views' | 'engagement'>('views');
+  const [selectedMetric, setSelectedMetric] = useState<TrendMetric>('views');
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
   const [selectedContributorMetric, setSelectedContributorMetric] = useState<ContributorMetric>('views');
   const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null);
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
-  const [hoveredEfficiencyContributor, setHoveredEfficiencyContributor] = useState<string | null>(null);
+  const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
   const selectedPlatform = activePlatform;
   const setSelectedPlatform = onChangePlatform;
   
@@ -101,10 +99,18 @@ export default function WorkspaceInsights({
     youtube: 'YouTube'
   };
   const contributorMetricLabels: Record<ContributorMetric, string> = {
-    views: 'Views',
-    engagement: 'Engagement',
+    performance: 'Performance',
     posts: 'Posts',
-    completion: 'Completion'
+    views: 'Views',
+    likes: 'Likes',
+    comments: 'Comments',
+    shares: 'Shares'
+  };
+  const trendMetricLabels: Record<TrendMetric, string> = {
+    views: 'Views',
+    likes: 'Likes',
+    comments: 'Comments',
+    shares: 'Shares'
   };
   const formatCompact = (value: number) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -193,11 +199,9 @@ export default function WorkspaceInsights({
   const authorStatsMap: Record<string, {
     count: number;
     views: number;
-    reach: number;
     likes: number;
     comments: number;
     shares: number;
-    completionTotal: number;
     platforms: Record<AuditItem['platform'], number>;
   }> = {};
   filteredTimelineAndStateData.forEach(item => {
@@ -206,39 +210,32 @@ export default function WorkspaceInsights({
       authorStatsMap[authorName] = {
         count: 0,
         views: 0,
-        reach: 0,
         likes: 0,
         comments: 0,
         shares: 0,
-        completionTotal: 0,
         platforms: { facebook: 0, instagram: 0, youtube: 0 }
       };
     }
     authorStatsMap[authorName].count += 1;
     authorStatsMap[authorName].views += item.views;
-    authorStatsMap[authorName].reach += item.reach;
     authorStatsMap[authorName].likes += item.likes;
     authorStatsMap[authorName].comments += item.comments;
     authorStatsMap[authorName].shares += item.shares;
-    authorStatsMap[authorName].completionTotal += item.completionRate;
     authorStatsMap[authorName].platforms[item.platform] += 1;
   });
 
   const authorStats: ContributorStat[] = Object.entries(authorStatsMap).map(([name, stats]) => {
-    const engagement = stats.likes + stats.comments + stats.shares;
+    const performance = stats.views + stats.likes + stats.comments + stats.shares;
     const topPlatform = (Object.entries(stats.platforms)
       .sort((a, b) => b[1] - a[1])[0]?.[0] || 'facebook') as AuditItem['platform'];
     return {
       name,
       count: stats.count,
       views: stats.views,
-      reach: stats.reach,
       likes: stats.likes,
       comments: stats.comments,
       shares: stats.shares,
-      engagement,
-      avgCompletion: stats.count > 0 ? stats.completionTotal / stats.count : 0,
-      engagementRate: stats.reach > 0 ? (engagement / stats.reach) * 100 : 0,
+      performance,
       topPlatform
     };
   }).sort((a, b) => b.views - a.views);
@@ -254,36 +251,37 @@ export default function WorkspaceInsights({
 
   const getContributorMetricValue = (stat: ContributorStat) => {
     switch (selectedContributorMetric) {
-      case 'engagement':
-        return stat.engagement;
+      case 'performance':
+        return stat.performance;
       case 'posts':
         return stat.count;
-      case 'completion':
-        return stat.avgCompletion;
+      case 'likes':
+        return stat.likes;
+      case 'comments':
+        return stat.comments;
+      case 'shares':
+        return stat.shares;
       default:
         return stat.views;
     }
   };
-  const formatContributorMetric = (value: number) => (
-    selectedContributorMetric === 'completion' ? `${value.toFixed(1)}%` : formatCompact(value)
-  );
+  const formatContributorMetric = (value: number) => formatCompact(value);
   const rankedAuthorStats = [...authorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
   const maxContributorMetric = Math.max(...rankedAuthorStats.map(getContributorMetricValue), 1);
   const maxContributorViews = Math.max(...authorStats.map(author => author.views), 1);
-  const maxContributorEngagementRate = Math.max(...authorStats.map(author => author.engagementRate), 1);
-  const detailContributor = authorStats.find(author => author.name === hoveredEfficiencyContributor)
+  const maxContributorLikes = Math.max(...authorStats.map(author => author.likes), 1);
+  const maxContributorComments = Math.max(...authorStats.map(author => author.comments), 1);
+  const maxContributorShares = Math.max(...authorStats.map(author => author.shares), 1);
+  const detailContributor = authorStats.find(author => author.name === hoveredMetricContributor)
     || focusedContributorStat
     || rankedAuthorStats[0]
     || null;
 
   // Metrics calculations
   const totalViews = focusedTimelineData.reduce((acc, item) => acc + item.views, 0);
-  const totalReach = focusedTimelineData.reduce((acc, item) => acc + item.reach, 0);
   const totalLikes = focusedTimelineData.reduce((acc, item) => acc + item.likes, 0);
   const totalComments = focusedTimelineData.reduce((acc, item) => acc + item.comments, 0);
   const totalShares = focusedTimelineData.reduce((acc, item) => acc + item.shares, 0);
-  const totalEngagement = totalLikes + totalComments + totalShares;
-  const avgEngagementRate = totalReach > 0 ? ((totalEngagement / totalReach) * 100).toFixed(1) : '0.0';
 
   // Platform specific counts
   const fbItems = focusedTimelineData.filter(i => i.platform === 'facebook');
@@ -307,12 +305,14 @@ export default function WorkspaceInsights({
       date: date.slice(5),
       fullDate: date,
       views,
-      engagement: likes + comments + shares,
+      likes,
+      comments,
+      shares,
       posts: dayItems.length
     };
   });
 
-  const currentMetricKey = selectedMetric === 'views' ? 'views' : 'engagement';
+  const currentMetricKey = selectedMetric;
   const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
   const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
 
@@ -472,10 +472,26 @@ export default function WorkspaceInsights({
 
       </div>
 
-      {/* Subtle & Normal KPI metrics: views, engagement, engagement rate, and contents published */}
-      <div id="insights-kpi-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Core KPI metrics: content published, views, likes, comments, and shares */}
+      <div id="insights-kpi-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
-        {/* Metric 1: Views */}
+        {/* Metric 1: Contents Published */}
+        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contents Published</span>
+            <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
+              <Target className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="text-2xl font-display font-extrabold text-slate-900">
+            {focusedTimelineData.length} <span className="text-sm font-semibold text-slate-500">Units</span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1.5">
+            Active in this context
+          </p>
+        </div>
+
+        {/* Metric 2: Views */}
         <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Views</span>
@@ -491,51 +507,51 @@ export default function WorkspaceInsights({
           </p>
         </div>
 
-        {/* Metric 2: Engagement */}
+        {/* Metric 3: Likes */}
         <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Engagement</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Likes</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
               <ThumbsUp className="w-5 h-5" />
             </div>
           </div>
           <div className="text-2xl font-display font-extrabold text-slate-900">
-            {totalEngagement.toLocaleString()}
+            {totalLikes.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center gap-1">
-            <span>{focusedTimelineData.length > 0 ? 'Likes, comments & shares' : 'No entries yet'}</span>
+          <p className="text-xs text-slate-500 font-medium mt-1.5">
+            Reactions recorded
           </p>
         </div>
 
-        {/* Metric 3: Engagement Rate */}
+        {/* Metric 4: Comments */}
         <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Engagement Rate</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Comments</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
-              <Activity className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5" />
             </div>
           </div>
           <div className="text-2xl font-display font-extrabold text-slate-900">
-            {avgEngagementRate}%
+            {totalComments.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 mt-1.5">
-            Measured against raw impressions
+          <p className="text-xs text-slate-500 font-medium mt-1.5">
+            Audience replies
           </p>
         </div>
 
-        {/* Metric 4: Contents Published */}
+        {/* Metric 5: Shares */}
         <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contents Published</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Shares</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
-              <Target className="w-5 h-5" />
+              <Share2 className="w-5 h-5" />
             </div>
           </div>
           <div className="text-2xl font-display font-extrabold text-slate-900">
-            {focusedTimelineData.length} <span className="text-sm font-semibold text-slate-500">Units</span>
+            {totalShares.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 mt-1.5">
-            Active in this context
+          <p className="text-xs text-slate-500 font-medium mt-1.5">
+            Forwarded content
           </p>
         </div>
 
@@ -553,7 +569,7 @@ export default function WorkspaceInsights({
                 <p className="text-xs text-slate-400">Comparing active levels over the selected audit timeline.</p>
               </div>
               <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center">
-                {(['views', 'engagement'] as const).map(met => (
+                {(['views', 'likes', 'comments', 'shares'] as const).map(met => (
                   <button
                     key={met}
                     onClick={() => setSelectedMetric(met)}
@@ -563,7 +579,7 @@ export default function WorkspaceInsights({
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    {met}
+                    {trendMetricLabels[met]}
                   </button>
                 ))}
               </div>
@@ -668,7 +684,7 @@ export default function WorkspaceInsights({
                 <div className="absolute right-2 top-2 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 shadow-lg text-xs pointer-events-none">
                   <div className="font-bold text-slate-800">{hoveredTrendPoint.fullDate}</div>
                   <div className={`${theme.primaryText} font-extrabold mt-0.5`}>
-                    {formatCompact(hoveredTrendPoint[currentMetricKey])} {selectedMetric}
+                    {formatCompact(hoveredTrendPoint[currentMetricKey])} {trendMetricLabels[selectedMetric].toLowerCase()}
                   </div>
                   <div className="text-[10px] text-slate-500 mt-0.5">{hoveredTrendPoint.posts} entries</div>
                 </div>
@@ -679,7 +695,7 @@ export default function WorkspaceInsights({
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <span className="flex items-center gap-1.5 font-bold text-orange-600">
               <span className="w-2.5 h-2.5 bg-orange-600 rounded-full inline-block"></span>
-              {selectedMetric.toUpperCase()} Trends
+              {trendMetricLabels[selectedMetric].toUpperCase()} Trends
             </span>
             <span>{focusedContributorStat ? `${focusedContributorStat.name} contribution view` : 'All contributor activity'}</span>
           </div>
@@ -695,7 +711,7 @@ export default function WorkspaceInsights({
               {/* YouTube */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-orange-600" /> YouTube Reach</span>
+                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-orange-600" /> YouTube Views</span>
                   <span>{ytViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -763,7 +779,7 @@ export default function WorkspaceInsights({
                         <span className="font-extrabold text-slate-800">
                           {formatCompact(author.views)} views
                         </span>
-                        <span className="text-slate-400 block text-[10px]">{author.engagementRate.toFixed(1)}% ER</span>
+                        <span className="text-slate-400 block text-[10px]">{author.count} posts · {formatCompact(author.shares)} shares</span>
                       </div>
                     </button>
                   ))
@@ -789,7 +805,7 @@ export default function WorkspaceInsights({
               <p className="text-xs text-slate-400">Ranking by uploaded contributor output in the current workspace context.</p>
             </div>
             <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
-              {(['views', 'engagement', 'posts', 'completion'] as const).map(metric => (
+              {(['performance', 'posts', 'views', 'likes', 'comments', 'shares'] as const).map(metric => (
                 <button
                   key={metric}
                   onClick={() => setSelectedContributorMetric(metric)}
@@ -837,7 +853,7 @@ export default function WorkspaceInsights({
                         <div className="min-w-0">
                           <div className="font-bold text-sm text-slate-800 truncate">{author.name}</div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                            {author.count} entries · {platformLabels[author.topPlatform]}
+                            {author.count} posts · {platformLabels[author.topPlatform]}
                           </div>
                         </div>
                       </div>
@@ -858,11 +874,12 @@ export default function WorkspaceInsights({
                       />
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                      <span><strong className="text-slate-700">{author.count}</strong> posts</span>
                       <span><strong className="text-slate-700">{formatCompact(author.views)}</strong> views</span>
-                      <span><strong className="text-slate-700">{formatCompact(author.engagement)}</strong> engagement</span>
-                      <span><strong className="text-slate-700">{author.engagementRate.toFixed(1)}%</strong> ER</span>
-                      <span><strong className="text-slate-700">{author.avgCompletion.toFixed(1)}%</strong> completion</span>
+                      <span><strong className="text-slate-700">{formatCompact(author.likes)}</strong> likes</span>
+                      <span><strong className="text-slate-700">{formatCompact(author.comments)}</strong> comments</span>
+                      <span><strong className="text-slate-700">{formatCompact(author.shares)}</strong> shares</span>
                     </div>
                   </button>
                 );
@@ -877,83 +894,91 @@ export default function WorkspaceInsights({
 
         <div className="xl:col-span-2 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Efficiency Map</h3>
-            <p className="text-xs text-slate-400 mt-1">Views against engagement rate, sized by entries.</p>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Metric Comparison</h3>
+            <p className="text-xs text-slate-400 mt-1">Side-by-side bars for views, likes, comments, and shares.</p>
           </div>
 
           {detailContributor ? (
-            <div className="mt-5 grid grid-cols-3 gap-3 text-xs">
+            <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Contributor</div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Selected</div>
                 <div className="mt-1 font-extrabold text-slate-800 truncate">{detailContributor.name}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Views</div>
-                <div className="mt-1 font-extrabold text-slate-800">{formatCompact(detailContributor.views)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">ER</div>
-                <div className="mt-1 font-extrabold text-slate-800">{detailContributor.engagementRate.toFixed(1)}%</div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Performance</div>
+                <div className="mt-1 font-extrabold text-slate-800">{formatCompact(detailContributor.performance)}</div>
               </div>
             </div>
           ) : (
             <div className="mt-5 text-xs text-slate-400">No contributor data yet.</div>
           )}
 
-          <div
-            className="relative mt-5 h-72 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
-            style={{
-              backgroundImage: 'linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)',
-              backgroundSize: '25% 25%'
-            }}
-          >
-            <div className="absolute left-3 top-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Engagement Rate</div>
-            <div className="absolute right-3 bottom-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Views</div>
-
-            {authorStats.map(author => {
-              const left = 8 + (author.views / maxContributorViews) * 84;
-              const top = 86 - (author.engagementRate / maxContributorEngagementRate) * 76;
-              const size = Math.min(34, Math.max(18, 16 + author.count * 3));
+          <div className="mt-5 space-y-4 max-h-96 overflow-y-auto pr-1">
+            {rankedAuthorStats.map(author => {
               const isActive = contributorFilterValue === author.name;
-              const isHovered = hoveredEfficiencyContributor === author.name;
+              const isHovered = hoveredMetricContributor === author.name;
+              const metrics = [
+                { label: 'Views', value: author.views, max: maxContributorViews, color: theme.chartFill },
+                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#16a34a' },
+                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#0284c7' },
+                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#7c3aed' }
+              ];
 
               return (
                 <button
                   key={author.name}
-                  title={author.name}
                   onClick={() => setSelectedContributor(author.name)}
-                  onMouseEnter={() => setHoveredEfficiencyContributor(author.name)}
-                  onMouseLeave={() => setHoveredEfficiencyContributor(null)}
-                  onFocus={() => setHoveredEfficiencyContributor(author.name)}
-                  onBlur={() => setHoveredEfficiencyContributor(null)}
-                  className={`absolute flex items-center justify-center rounded-full border-2 text-[10px] font-extrabold shadow-sm transition ${
-                    isActive || isHovered ? 'scale-110 border-slate-900 text-white z-20' : 'border-white text-white z-10'
+                  onMouseEnter={() => setHoveredMetricContributor(author.name)}
+                  onMouseLeave={() => setHoveredMetricContributor(null)}
+                  onFocus={() => setHoveredMetricContributor(author.name)}
+                  onBlur={() => setHoveredMetricContributor(null)}
+                  className={`w-full rounded-lg border p-3 text-left transition ${
+                    isActive || isHovered ? `${theme.accentBorder} ${theme.lightBg}` : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
                   }`}
-                  style={{
-                    left: `${left}%`,
-                    top: `${top}%`,
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    transform: 'translate(-50%, -50%)',
-                    backgroundColor: theme.chartFill,
-                    opacity: isActive || isHovered ? 1 : 0.78
-                  }}
                 >
-                  {getInitials(author.name)}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 ${
+                        isActive ? `${theme.primaryBg} text-white` : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {getInitials(author.name)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs text-slate-800 truncate">{author.name}</div>
+                        <div className="text-[10px] text-slate-400">{author.count} posts</div>
+                      </div>
+                    </div>
+                    <Trophy className={`w-4 h-4 shrink-0 ${theme.primaryText}`} />
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    {metrics.map(metric => (
+                      <div key={metric.label}>
+                        <div className="mb-1 flex items-center justify-between text-[10px] font-semibold text-slate-500">
+                          <span>{metric.label}</span>
+                          <span>{formatCompact(metric.value)}</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${metric.value > 0 ? Math.max(5, (metric.value / metric.max) * 100) : 0}%`,
+                              backgroundColor: metric.color
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </button>
               );
             })}
 
-            {authorStats.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+            {rankedAuthorStats.length === 0 && (
+              <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
                 No contributor data yet.
               </div>
             )}
-          </div>
-
-          <div className="mt-3 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Lower reach</span>
-            <span>Higher reach</span>
           </div>
         </div>
       </div>

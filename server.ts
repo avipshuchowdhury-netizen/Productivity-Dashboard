@@ -66,11 +66,9 @@ app.post("/api/audit", (req, res) => {
       ...item,
       id: "aud-" + Date.now(),
       views: Number(item.views) || 0,
-      reach: Number(item.reach) || 0,
       likes: Number(item.likes) || 0,
       comments: Number(item.comments) || 0,
-      shares: Number(item.shares) || 0,
-      completionRate: Number(item.completionRate) || 0
+      shares: Number(item.shares) || 0
     };
     db.auditItems.push(newItem);
     saveDb(db);

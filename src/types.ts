@@ -5,11 +5,9 @@ export interface AuditItem {
   format: string; // Reel, Video, Post, Carousel, etc.
   publishedAt: string;
   views: number;
-  reach: number;
   likes: number;
   comments: number;
   shares: number;
-  completionRate: number; // For video/reels (retention)
   author: string;
   state?: string;
   page?: string;

@@ -170,11 +170,9 @@ export default function App() {
       ...item,
       id: "aud-" + Date.now(),
       views: Number(item.views) || 0,
-      reach: Number(item.reach) || 0,
       likes: Number(item.likes) || 0,
       comments: Number(item.comments) || 0,
-      shares: Number(item.shares) || 0,
-      completionRate: Number(item.completionRate) || 0
+      shares: Number(item.shares) || 0
     };
 
     try {
@@ -210,12 +208,6 @@ export default function App() {
   const handleRemovePage = (name: string) => {
     setSavedPages(prev => prev.filter(p => p.name !== name));
   };
-
-  // Calculate dynamic metrics for the "Professional Polish" layout top header
-  const premiumAudits = data.auditItems.filter(i => i.completionRate > 0);
-  const avgCompletion = premiumAudits.length > 0 
-    ? (premiumAudits.reduce((acc, i) => acc + i.completionRate, 0) / premiumAudits.length).toFixed(1)
-    : "0.0";
 
   // Navigation tab styling helpers
   const tabs = [
@@ -298,8 +290,8 @@ export default function App() {
           <div className="flex gap-4 md:gap-5 items-center">
             {/* Dynamic score statistic */}
             <div className="text-right hidden md:block">
-              <p className="text-[9px] uppercase text-slate-400 font-extrabold tracking-widest">Avg Completion</p>
-              <p className={`text-sm font-bold ${appTheme.headerText}`}>{avgCompletion}%</p>
+              <p className="text-[9px] uppercase text-slate-400 font-extrabold tracking-widest">Entries</p>
+              <p className={`text-sm font-bold ${appTheme.headerText}`}>{data.auditItems.length}</p>
             </div>
             <div className="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
 

@@ -81,11 +81,9 @@ export default function ContributorPortal({
   
   const [newAuthor, setNewAuthor] = useState('');
   const [newViews, setNewViews] = useState('');
-  const [newReach, setNewReach] = useState('');
   const [newLikes, setNewLikes] = useState('');
   const [newComments, setNewComments] = useState('');
   const [newShares, setNewShares] = useState('');
-  const [newCompletion, setNewCompletion] = useState('');
   const [proofUrl, setProofUrl] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -247,11 +245,9 @@ export default function ContributorPortal({
         format: newFormat,
         publishedAt: new Date().toISOString().slice(0, 10),
         views: Number(newViews) || 0,
-        reach: Number(newReach) || 0,
         likes: Number(newLikes) || 0,
         comments: Number(newComments) || 0,
         shares: Number(newShares) || 0,
-        completionRate: Number(newCompletion) || 0,
         author: newAuthor,
         state: newState,
         page: finalPageName,
@@ -263,11 +259,9 @@ export default function ContributorPortal({
       // Auto reset fields
       setNewTitle('');
       setNewViews('');
-      setNewReach('');
       setNewLikes('');
       setNewComments('');
       setNewShares('');
-      setNewCompletion('');
       setProofUrl('');
       
       setTimeout(() => {
@@ -581,7 +575,7 @@ export default function ContributorPortal({
               {/* Form Row 4: Metrics Input */}
               <div className="bg-slate-50/50 p-4 rounded-xl border border-dotted border-slate-200 mt-2">
                 <span className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Publish Performance Metrics</span>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Views Count</label>
                     <input
@@ -590,16 +584,6 @@ export default function ContributorPortal({
                       placeholder="e.g., 12000"
                       value={newViews}
                       onChange={e => setNewViews(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Reach Reach</label>
-                    <input
-                      type="number"
-                      className={`w-full px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
-                      placeholder="e.g., 14850"
-                      value={newReach}
-                      onChange={e => setNewReach(e.target.value)}
                     />
                   </div>
                   <div>
@@ -630,19 +614,6 @@ export default function ContributorPortal({
                       placeholder="e.g., 120"
                       value={newShares}
                       onChange={e => setNewShares(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="md:col-span-2">
-                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Reel/Video Retention Completion Rate %</label>
-                    <input
-                      type="number"
-                      className={`w-full max-w-xs px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
-                      placeholder="e.g., 72"
-                      value={newCompletion}
-                      onChange={e => setNewCompletion(e.target.value)}
                     />
                   </div>
                 </div>
