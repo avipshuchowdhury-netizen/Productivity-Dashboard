@@ -31,6 +31,21 @@ const writeLocalAuditItems = (items: AuditItem[]) => {
   localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(items));
 };
 
+const normalizeAuditItem = (item: AuditItem): AuditItem => ({
+  ...item,
+  title: item.title.trim(),
+  format: item.format.trim() || 'reel',
+  publishedAt: item.publishedAt || new Date().toISOString().slice(0, 10),
+  views: Number(item.views) || 0,
+  likes: Number(item.likes) || 0,
+  comments: Number(item.comments) || 0,
+  shares: Number(item.shares) || 0,
+  author: item.author.trim() || 'Unknown Contributor',
+  state: item.state?.trim() || undefined,
+  page: item.page?.trim() || undefined,
+  theme: item.theme === 'negative' ? 'negative' : 'positive'
+});
+
 export default function App() {
   // Current Selected Tab
   const [activeTab, setActiveTab] = useState<'insights' | 'contributor'>('insights');
@@ -190,6 +205,54 @@ export default function App() {
       console.error(e);
       setData(prev => {
         const nextAuditItems = [...prev.auditItems, localItem];
+        writeLocalAuditItems(nextAuditItems);
+        return { auditItems: nextAuditItems };
+      });
+    }
+  };
+
+  const handleUpdateAuditItem = async (item: AuditItem) => {
+    const normalizedItem = normalizeAuditItem(item);
+
+    try {
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", item: normalizedItem })
+      });
+      if (res.ok) {
+        await fetchDashboardData(true);
+        return;
+      }
+      throw new Error("Server storage unavailable");
+    } catch (e) {
+      console.error(e);
+      setData(prev => {
+        const nextAuditItems = prev.auditItems.map(existing =>
+          existing.id === normalizedItem.id ? normalizedItem : existing
+        );
+        writeLocalAuditItems(nextAuditItems);
+        return { auditItems: nextAuditItems };
+      });
+    }
+  };
+
+  const handleDeleteAuditItem = async (id: string) => {
+    try {
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", item: { id } })
+      });
+      if (res.ok) {
+        await fetchDashboardData(true);
+        return;
+      }
+      throw new Error("Server storage unavailable");
+    } catch (e) {
+      console.error(e);
+      setData(prev => {
+        const nextAuditItems = prev.auditItems.filter(item => item.id !== id);
         writeLocalAuditItems(nextAuditItems);
         return { auditItems: nextAuditItems };
       });
@@ -359,6 +422,8 @@ export default function App() {
                     savedPages={savedPages}
                     activePlatform={activePlatform}
                     onChangePlatform={setActivePlatform}
+                    onUpdateAuditItem={handleUpdateAuditItem}
+                    onDeleteAuditItem={handleDeleteAuditItem}
                   />
                 )}
 

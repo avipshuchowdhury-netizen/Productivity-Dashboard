@@ -4,7 +4,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
 
@@ -60,20 +60,47 @@ app.get("/api/dashboard-data", (req, res) => {
 app.post("/api/audit", (req, res) => {
   const { action, item } = req.body;
   const db = getDb();
+  const normalizeAuditItem = (record: any) => ({
+    ...record,
+    id: String(record.id || `aud-${Date.now()}`),
+    title: String(record.title || "").trim(),
+    platform: ["facebook", "instagram", "youtube"].includes(record.platform) ? record.platform : "instagram",
+    format: String(record.format || "reel"),
+    publishedAt: String(record.publishedAt || new Date().toISOString().slice(0, 10)),
+    views: Number(record.views) || 0,
+    likes: Number(record.likes) || 0,
+    comments: Number(record.comments) || 0,
+    shares: Number(record.shares) || 0,
+    author: String(record.author || "Unknown Contributor").trim(),
+    state: record.state ? String(record.state) : undefined,
+    page: record.page ? String(record.page) : undefined,
+    theme: record.theme === "negative" ? "negative" : "positive"
+  });
 
   if (action === "create") {
-    const newItem = {
-      ...item,
-      id: "aud-" + Date.now(),
-      views: Number(item.views) || 0,
-      likes: Number(item.likes) || 0,
-      comments: Number(item.comments) || 0,
-      shares: Number(item.shares) || 0
-    };
+    const newItem = normalizeAuditItem({ ...item, id: "aud-" + Date.now() });
     db.auditItems.push(newItem);
     saveDb(db);
     return res.json({ success: true, item: newItem });
+  } else if (action === "update") {
+    if (!item?.id) {
+      return res.status(400).json({ error: "Missing audit item id" });
+    }
+
+    const index = db.auditItems.findIndex((a: any) => a.id === item.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Audit item not found" });
+    }
+
+    const updatedItem = normalizeAuditItem({ ...db.auditItems[index], ...item });
+    db.auditItems[index] = updatedItem;
+    saveDb(db);
+    return res.json({ success: true, item: updatedItem });
   } else if (action === "delete") {
+    if (!item?.id) {
+      return res.status(400).json({ error: "Missing audit item id" });
+    }
+
     db.auditItems = db.auditItems.filter((a: any) => a.id !== item.id);
     saveDb(db);
     return res.json({ success: true });

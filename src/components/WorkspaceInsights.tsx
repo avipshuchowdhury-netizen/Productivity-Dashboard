@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy } from 'lucide-react';
+import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, Pencil, Trash2, Save, X } from 'lucide-react';
 
 interface Props {
   auditItems: AuditItem[];
   savedPages: SocialPage[];
   activePlatform: 'all' | 'facebook' | 'instagram' | 'youtube';
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
+  onUpdateAuditItem: (item: AuditItem) => Promise<void>;
+  onDeleteAuditItem: (id: string) => Promise<void>;
 }
 
 type TrendMetric = 'views' | 'likes' | 'comments' | 'shares';
@@ -27,7 +29,9 @@ export default function WorkspaceInsights({
   auditItems, 
   savedPages, 
   activePlatform, 
-  onChangePlatform 
+  onChangePlatform,
+  onUpdateAuditItem,
+  onDeleteAuditItem
 }: Props) {
   const [selectedMetric, setSelectedMetric] = useState<TrendMetric>('views');
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
@@ -35,6 +39,10 @@ export default function WorkspaceInsights({
   const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null);
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
   const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<AuditItem | null>(null);
+  const [entryNotice, setEntryNotice] = useState('');
+  const [isSavingEntry, setIsSavingEntry] = useState(false);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
   const selectedPlatform = activePlatform;
   const setSelectedPlatform = onChangePlatform;
   
@@ -315,6 +323,83 @@ export default function WorkspaceInsights({
   const currentMetricKey = selectedMetric;
   const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
   const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
+  const managedEntries = [...focusedTimelineData].sort((a, b) => {
+    const byDate = new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    return byDate || b.id.localeCompare(a.id);
+  });
+  const formatOptions = ['reel', 'creative', 'repackage', 'carousel'];
+  const editFormatOptions = editDraft?.format && !formatOptions.includes(editDraft.format)
+    ? [editDraft.format, ...formatOptions]
+    : formatOptions;
+  const editPageOptions = editDraft?.page && !currentPagesList.includes(editDraft.page)
+    ? [editDraft.page, ...currentPagesList]
+    : currentPagesList;
+
+  const beginEditEntry = (item: AuditItem) => {
+    setEditDraft({ ...item });
+    setEntryNotice('');
+  };
+
+  const updateEditDraft = (patch: Partial<AuditItem>) => {
+    setEditDraft(prev => prev ? { ...prev, ...patch } : prev);
+  };
+
+  const handleSaveEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDraft) return;
+
+    const normalizedDraft: AuditItem = {
+      ...editDraft,
+      title: editDraft.title.trim(),
+      format: editDraft.format.trim() || 'reel',
+      author: editDraft.author.trim() || 'Unknown Contributor',
+      publishedAt: editDraft.publishedAt || new Date().toISOString().slice(0, 10),
+      views: Number(editDraft.views) || 0,
+      likes: Number(editDraft.likes) || 0,
+      comments: Number(editDraft.comments) || 0,
+      shares: Number(editDraft.shares) || 0,
+      state: editDraft.state?.trim() || undefined,
+      page: editDraft.page?.trim() || undefined,
+      theme: editDraft.theme === 'negative' ? 'negative' : 'positive'
+    };
+
+    if (!normalizedDraft.title) {
+      setEntryNotice('Title is required before saving this entry.');
+      return;
+    }
+
+    setIsSavingEntry(true);
+    try {
+      await onUpdateAuditItem(normalizedDraft);
+      setEditDraft(null);
+      setEntryNotice('Entry updated successfully.');
+    } catch (err) {
+      console.error(err);
+      setEntryNotice('Unable to update this entry. Please sync and try again.');
+    } finally {
+      setIsSavingEntry(false);
+    }
+  };
+
+  const handleDeleteEntry = async (item: AuditItem) => {
+    const confirmed = window.confirm(`Remove "${item.title}" from uploaded entries? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingEntryId(item.id);
+    setEntryNotice('');
+    try {
+      await onDeleteAuditItem(item.id);
+      if (editDraft?.id === item.id) {
+        setEditDraft(null);
+      }
+      setEntryNotice('Entry removed from Insights.');
+    } catch (err) {
+      console.error(err);
+      setEntryNotice('Unable to remove this entry. Please sync and try again.');
+    } finally {
+      setDeletingEntryId(null);
+    }
+  };
 
   return (
     <div id="workspace-insights" className="space-y-6">
@@ -555,6 +640,233 @@ export default function WorkspaceInsights({
           </p>
         </div>
 
+      </div>
+
+      {/* Uploaded entries management */}
+      <div id="uploaded-entry-manager" className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Edit or Remove Uploaded Entries</h3>
+            <p className="text-xs text-slate-400 mt-1">Review contributor uploads matching the active filters and correct wrong records.</p>
+          </div>
+          <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.lightBg} ${theme.primaryText}`}>
+            {managedEntries.length} visible entries
+          </div>
+        </div>
+
+        {entryNotice && (
+          <div className="mx-5 mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+            {entryNotice}
+          </div>
+        )}
+
+        {editDraft && (
+          <form onSubmit={handleSaveEntry} className={`m-5 rounded-xl border ${theme.accentBorder} ${theme.lightBg} p-4 text-xs space-y-4`}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className={`font-extrabold uppercase tracking-wider ${theme.primaryText}`}>Editing Entry</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Changes update the same record used by all Insights charts.</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditDraft(null)}
+                className="p-2 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800 transition"
+                title="Close editor"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label className="md:col-span-2">
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Title</span>
+                <input
+                  type="text"
+                  required
+                  value={editDraft.title}
+                  onChange={e => updateEditDraft({ title: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                />
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Contributor</span>
+                <input
+                  type="text"
+                  value={editDraft.author}
+                  onChange={e => updateEditDraft({ author: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Date</span>
+                <input
+                  type="date"
+                  value={editDraft.publishedAt}
+                  onChange={e => updateEditDraft({ publishedAt: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                />
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Channel</span>
+                <select
+                  value={editDraft.platform}
+                  onChange={e => updateEditDraft({ platform: e.target.value as AuditItem['platform'] })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden capitalize ${theme.primaryBorder}`}
+                >
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Format</span>
+                <select
+                  value={editDraft.format}
+                  onChange={e => updateEditDraft({ format: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden capitalize ${theme.primaryBorder}`}
+                >
+                  {editFormatOptions.map(format => (
+                    <option key={format} value={format}>{format}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">State</span>
+                <select
+                  value={editDraft.state || ''}
+                  onChange={e => updateEditDraft({ state: e.target.value || undefined })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                >
+                  <option value="">No state</option>
+                  {STATES_LIST.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Theme</span>
+                <select
+                  value={editDraft.theme || 'positive'}
+                  onChange={e => updateEditDraft({ theme: e.target.value as AuditItem['theme'] })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                >
+                  <option value="positive">Positive</option>
+                  <option value="negative">Negative</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <label className="md:col-span-2">
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Page</span>
+                <select
+                  value={editDraft.page || ''}
+                  onChange={e => updateEditDraft({ page: e.target.value || undefined })}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                >
+                  <option value="">No page</option>
+                  {editPageOptions.map(page => (
+                    <option key={page} value={page}>{page}</option>
+                  ))}
+                </select>
+              </label>
+              {(['views', 'likes', 'comments', 'shares'] as const).map(metric => (
+                <label key={metric}>
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    {trendMetricLabels[metric]}
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editDraft[metric]}
+                    onChange={e => updateEditDraft({ [metric]: Number(e.target.value) || 0 })}
+                    className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setEditDraft(null)}
+                className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold transition flex items-center gap-1.5"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSavingEntry}
+                className={`px-4 py-2 rounded-lg text-white font-bold transition flex items-center gap-1.5 ${theme.primaryBg} ${theme.primaryHover} disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                <Save className="w-3.5 h-3.5" /> {isSavingEntry ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="divide-y divide-slate-100 max-h-[32rem] overflow-y-auto">
+          {managedEntries.length > 0 ? (
+            managedEntries.map(item => (
+              <div key={item.id} className="p-4 flex flex-col xl:flex-row xl:items-center gap-4 hover:bg-slate-50/70 transition">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-extrabold ${theme.lightBg} ${theme.primaryText}`}>
+                      {platformLabels[item.platform]}
+                    </span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">{item.format}</span>
+                    <span className="text-[10px] font-mono text-slate-400">{item.publishedAt}</span>
+                  </div>
+                  <div className="font-bold text-sm text-slate-800 truncate" title={item.title}>{item.title}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                    <span>{item.author || 'Unknown Contributor'}</span>
+                    <span>{item.page || 'No page'}</span>
+                    <span>{item.state || 'No state'}</span>
+                    <span className={item.theme === 'negative' ? 'text-red-600 font-semibold' : 'text-emerald-600 font-semibold'}>
+                      {item.theme === 'negative' ? 'Negative' : 'Positive'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2 text-center text-[11px] text-slate-500 xl:w-96">
+                  {(['views', 'likes', 'comments', 'shares'] as const).map(metric => (
+                    <div key={metric} className="rounded-lg bg-slate-50 border border-slate-100 px-2 py-1.5">
+                      <div className="font-extrabold text-slate-800">{formatCompact(item[metric])}</div>
+                      <div className="uppercase tracking-wider text-[9px]">{trendMetricLabels[metric]}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 xl:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => beginEditEntry(item)}
+                    className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition"
+                    title={`Edit ${item.title}`}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingEntryId === item.id}
+                    onClick={() => handleDeleteEntry(item)}
+                    className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={`Remove ${item.title}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-12 text-center text-xs text-slate-400">
+              No uploaded entries match the current filters.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Graph & Channel Breakdown */}
