@@ -43,7 +43,9 @@ const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   author: item.author.trim() || 'Unknown Contributor',
   state: item.state?.trim() || undefined,
   page: item.page?.trim() || undefined,
-  theme: item.theme === 'negative' ? 'negative' : 'positive'
+  theme: item.theme === 'negative' ? 'negative' : 'positive',
+  archivedAt: item.archivedAt || undefined,
+  archiveReason: item.archiveReason?.trim() || undefined
 });
 
 export default function App() {
@@ -237,12 +239,13 @@ export default function App() {
     }
   };
 
-  const handleDeleteAuditItem = async (id: string) => {
+  const handleArchiveAuditItem = async (id: string) => {
+    const archivedAt = new Date().toISOString();
     try {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", item: { id } })
+        body: JSON.stringify({ action: "archive", item: { id, archiveReason: "manual" } })
       });
       if (res.ok) {
         await fetchDashboardData(true);
@@ -252,7 +255,9 @@ export default function App() {
     } catch (e) {
       console.error(e);
       setData(prev => {
-        const nextAuditItems = prev.auditItems.filter(item => item.id !== id);
+        const nextAuditItems = prev.auditItems.map(item =>
+          item.id === id ? { ...item, archivedAt, archiveReason: "manual" } : item
+        );
         writeLocalAuditItems(nextAuditItems);
         return { auditItems: nextAuditItems };
       });
@@ -423,7 +428,7 @@ export default function App() {
                     activePlatform={activePlatform}
                     onChangePlatform={setActivePlatform}
                     onUpdateAuditItem={handleUpdateAuditItem}
-                    onDeleteAuditItem={handleDeleteAuditItem}
+                    onArchiveAuditItem={handleArchiveAuditItem}
                   />
                 )}
 

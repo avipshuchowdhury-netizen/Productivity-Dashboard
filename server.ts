@@ -74,7 +74,9 @@ app.post("/api/audit", (req, res) => {
     author: String(record.author || "Unknown Contributor").trim(),
     state: record.state ? String(record.state) : undefined,
     page: record.page ? String(record.page) : undefined,
-    theme: record.theme === "negative" ? "negative" : "positive"
+    theme: record.theme === "negative" ? "negative" : "positive",
+    archivedAt: record.archivedAt ? String(record.archivedAt) : undefined,
+    archiveReason: record.archiveReason ? String(record.archiveReason) : undefined
   });
 
   if (action === "create") {
@@ -96,14 +98,60 @@ app.post("/api/audit", (req, res) => {
     db.auditItems[index] = updatedItem;
     saveDb(db);
     return res.json({ success: true, item: updatedItem });
+  } else if (action === "archive") {
+    if (!item?.id) {
+      return res.status(400).json({ error: "Missing audit item id" });
+    }
+
+    const index = db.auditItems.findIndex((a: any) => a.id === item.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Audit item not found" });
+    }
+
+    const archivedItem = normalizeAuditItem({
+      ...db.auditItems[index],
+      archivedAt: new Date().toISOString(),
+      archiveReason: item.archiveReason || "manual"
+    });
+    db.auditItems[index] = archivedItem;
+    saveDb(db);
+    return res.json({ success: true, item: archivedItem });
+  } else if (action === "restore") {
+    if (!item?.id) {
+      return res.status(400).json({ error: "Missing audit item id" });
+    }
+
+    const index = db.auditItems.findIndex((a: any) => a.id === item.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Audit item not found" });
+    }
+
+    const restoredItem = normalizeAuditItem({
+      ...db.auditItems[index],
+      archivedAt: undefined,
+      archiveReason: undefined
+    });
+    db.auditItems[index] = restoredItem;
+    saveDb(db);
+    return res.json({ success: true, item: restoredItem });
   } else if (action === "delete") {
     if (!item?.id) {
       return res.status(400).json({ error: "Missing audit item id" });
     }
 
-    db.auditItems = db.auditItems.filter((a: any) => a.id !== item.id);
+    const index = db.auditItems.findIndex((a: any) => a.id === item.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Audit item not found" });
+    }
+
+    const archivedItem = normalizeAuditItem({
+      ...db.auditItems[index],
+      archivedAt: new Date().toISOString(),
+      archiveReason: item.archiveReason || "manual"
+    });
+    db.auditItems[index] = archivedItem;
     saveDb(db);
-    return res.json({ success: true });
+    return res.json({ success: true, item: archivedItem });
   }
 
   res.status(400).json({ error: "Invalid Action" });

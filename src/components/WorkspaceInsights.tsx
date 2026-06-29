@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, Pencil, Trash2, Save, X } from 'lucide-react';
+import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, Pencil, Archive, RotateCcw, Save, X } from 'lucide-react';
 
 interface Props {
   auditItems: AuditItem[];
@@ -8,7 +8,7 @@ interface Props {
   activePlatform: 'all' | 'facebook' | 'instagram' | 'youtube';
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
   onUpdateAuditItem: (item: AuditItem) => Promise<void>;
-  onDeleteAuditItem: (id: string) => Promise<void>;
+  onArchiveAuditItem: (id: string) => Promise<void>;
 }
 
 type TrendMetric = 'views' | 'likes' | 'comments' | 'shares';
@@ -31,7 +31,7 @@ export default function WorkspaceInsights({
   activePlatform, 
   onChangePlatform,
   onUpdateAuditItem,
-  onDeleteAuditItem
+  onArchiveAuditItem
 }: Props) {
   const [selectedMetric, setSelectedMetric] = useState<TrendMetric>('views');
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
@@ -40,9 +40,11 @@ export default function WorkspaceInsights({
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
   const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<AuditItem | null>(null);
+  const [managementView, setManagementView] = useState<'active' | 'archive'>('active');
   const [entryNotice, setEntryNotice] = useState('');
   const [isSavingEntry, setIsSavingEntry] = useState(false);
-  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [archivingEntryId, setArchivingEntryId] = useState<string | null>(null);
+  const [restoringEntryId, setRestoringEntryId] = useState<string | null>(null);
   const selectedPlatform = activePlatform;
   const setSelectedPlatform = onChangePlatform;
   
@@ -125,6 +127,21 @@ export default function WorkspaceInsights({
     if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
     return Math.round(value).toLocaleString();
   };
+  const ARCHIVE_VISIBLE_DAYS = 15;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const nowMs = Date.now();
+  const isArchived = (item: AuditItem) => Boolean(item.archivedAt);
+  const isRecentArchive = (item: AuditItem) => {
+    if (!item.archivedAt) return false;
+    const archivedTime = new Date(item.archivedAt).getTime();
+    if (Number.isNaN(archivedTime)) return false;
+    return nowMs - archivedTime <= ARCHIVE_VISIBLE_DAYS * DAY_MS;
+  };
+  const formatArchiveDate = (value?: string) => {
+    if (!value) return 'Not archived';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+  };
   const getInitials = (name: string) => name
     .split(' ')
     .filter(Boolean)
@@ -155,19 +172,31 @@ export default function WorkspaceInsights({
       page: item.page || defaultPage
     };
   });
+  const activeAuditItemsWithDefaults = auditItemsWithDefaults.filter(item => !isArchived(item));
+  const recentArchivedItemsWithDefaults = auditItemsWithDefaults.filter(isRecentArchive);
 
 
   // Calculate reference date based on data or today
   const getReferenceDate = () => {
-    if (auditItems.length === 0) return new Date();
-    const dates = auditItems.map(item => new Date(item.publishedAt).getTime());
+    if (activeAuditItemsWithDefaults.length === 0) return new Date();
+    const dates = activeAuditItemsWithDefaults.map(item => new Date(item.publishedAt).getTime());
     return new Date(Math.max(...dates));
   };
 
   const refDate = getReferenceDate();
 
+  const matchesEntryManagementFilters = (item: AuditItem) => {
+    const matchesState = selectedState === 'All States' || item.state === selectedState;
+    const matchesPage = selectedPage === 'All Pages' || item.page === selectedPage;
+    const matchesPlatform = selectedPlatform === 'all' || item.platform === selectedPlatform;
+    const matchesContributor = contributorFilterValue === 'All Contributors'
+      || (item.author || 'Unknown Contributor') === contributorFilterValue;
+
+    return matchesState && matchesPage && matchesPlatform && matchesContributor;
+  };
+
   // Timeline + State + Page Filter
-  const filteredTimelineAndStateData = auditItemsWithDefaults.filter(item => {
+  const filteredTimelineAndStateData = activeAuditItemsWithDefaults.filter(item => {
     // 1. Timeline filter
     const itemTime = new Date(item.publishedAt).getTime();
     let matchesTimeline = true;
@@ -323,10 +352,20 @@ export default function WorkspaceInsights({
   const currentMetricKey = selectedMetric;
   const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
   const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
-  const managedEntries = [...focusedTimelineData].sort((a, b) => {
+  const activeManagedEntries = activeAuditItemsWithDefaults.filter(matchesEntryManagementFilters);
+  const archivedManagedEntries = recentArchivedItemsWithDefaults.filter(matchesEntryManagementFilters);
+  const managedEntries = [...(managementView === 'active' ? activeManagedEntries : archivedManagedEntries)].sort((a, b) => {
+    if (managementView === 'archive') {
+      const aArchivedAt = a.archivedAt ? new Date(a.archivedAt).getTime() : 0;
+      const bArchivedAt = b.archivedAt ? new Date(b.archivedAt).getTime() : 0;
+      return bArchivedAt - aArchivedAt || b.id.localeCompare(a.id);
+    }
     const byDate = new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     return byDate || b.id.localeCompare(a.id);
   });
+  const storedEntryCount = auditItemsWithDefaults.length;
+  const activeStoredEntryCount = activeAuditItemsWithDefaults.length;
+  const archivedStoredEntryCount = auditItemsWithDefaults.filter(isArchived).length;
   const formatOptions = ['reel', 'creative', 'repackage', 'carousel'];
   const editFormatOptions = editDraft?.format && !formatOptions.includes(editDraft.format)
     ? [editDraft.format, ...formatOptions]
@@ -381,23 +420,43 @@ export default function WorkspaceInsights({
     }
   };
 
-  const handleDeleteEntry = async (item: AuditItem) => {
-    const confirmed = window.confirm(`Remove "${item.title}" from uploaded entries? This cannot be undone.`);
+  const handleArchiveEntry = async (item: AuditItem) => {
+    const confirmed = window.confirm(`Archive "${item.title}" from active Insights? The record will stay stored and appear in the archive view for 15 days.`);
     if (!confirmed) return;
 
-    setDeletingEntryId(item.id);
+    setArchivingEntryId(item.id);
     setEntryNotice('');
     try {
-      await onDeleteAuditItem(item.id);
+      await onArchiveAuditItem(item.id);
       if (editDraft?.id === item.id) {
         setEditDraft(null);
       }
-      setEntryNotice('Entry removed from Insights.');
+      setManagementView('archive');
+      setEntryNotice('Entry archived. Data is still stored and visible in the archive view for 15 days.');
     } catch (err) {
       console.error(err);
-      setEntryNotice('Unable to remove this entry. Please sync and try again.');
+      setEntryNotice('Unable to archive this entry. Please sync and try again.');
     } finally {
-      setDeletingEntryId(null);
+      setArchivingEntryId(null);
+    }
+  };
+
+  const handleRestoreEntry = async (item: AuditItem) => {
+    setRestoringEntryId(item.id);
+    setEntryNotice('');
+    try {
+      await onUpdateAuditItem({
+        ...item,
+        archivedAt: undefined,
+        archiveReason: undefined
+      });
+      setManagementView('active');
+      setEntryNotice('Entry restored to active Insights.');
+    } catch (err) {
+      console.error(err);
+      setEntryNotice('Unable to restore this entry. Please sync and try again.');
+    } finally {
+      setRestoringEntryId(null);
     }
   };
 
@@ -642,15 +701,55 @@ export default function WorkspaceInsights({
 
       </div>
 
-      {/* Uploaded entries management */}
-      <div id="uploaded-entry-manager" className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      {/* Entry management and archive */}
+      <div id="entry-management-archive" className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Edit or Remove Uploaded Entries</h3>
-            <p className="text-xs text-slate-400 mt-1">Review contributor uploads matching the active filters and correct wrong records.</p>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Entry Management & Archive</h3>
+            <p className="text-xs text-slate-400 mt-1">Edit active contributor uploads or archive incorrect records while keeping stored data intact.</p>
           </div>
-          <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.lightBg} ${theme.primaryText}`}>
-            {managedEntries.length} visible entries
+          <div className="flex flex-wrap items-center gap-2">
+            {([
+              { id: 'active', label: 'Active Entries', count: activeManagedEntries.length },
+              { id: 'archive', label: `Archive ${ARCHIVE_VISIBLE_DAYS}D`, count: archivedManagedEntries.length }
+            ] as const).map(view => (
+              <button
+                key={view.id}
+                type="button"
+                onClick={() => {
+                  setManagementView(view.id);
+                  setEditDraft(null);
+                  setEntryNotice('');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  managementView === view.id
+                    ? `${theme.primaryBg} text-white shadow-xs`
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {view.label}
+                <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                  managementView === view.id ? 'bg-white/20 text-white' : 'bg-white text-slate-500'
+                }`}>
+                  {view.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-slate-50/60">
+          <div className="px-5 py-3">
+            <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Active Stored</div>
+            <div className="text-lg font-extrabold text-slate-800">{activeStoredEntryCount}</div>
+          </div>
+          <div className="px-5 py-3">
+            <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Archived Stored</div>
+            <div className="text-lg font-extrabold text-slate-800">{archivedStoredEntryCount}</div>
+          </div>
+          <div className="px-5 py-3">
+            <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Total Stored</div>
+            <div className="text-lg font-extrabold text-slate-800">{storedEntryCount}</div>
           </div>
         </div>
 
@@ -660,12 +759,12 @@ export default function WorkspaceInsights({
           </div>
         )}
 
-        {editDraft && (
+        {managementView === 'active' && editDraft && (
           <form onSubmit={handleSaveEntry} className={`m-5 rounded-xl border ${theme.accentBorder} ${theme.lightBg} p-4 text-xs space-y-4`}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className={`font-extrabold uppercase tracking-wider ${theme.primaryText}`}>Editing Entry</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Changes update the same record used by all Insights charts.</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Changes update the active record used by Insights charts.</div>
               </div>
               <button
                 type="button"
@@ -819,6 +918,11 @@ export default function WorkspaceInsights({
                     </span>
                     <span className="text-[10px] uppercase font-bold text-slate-400">{item.format}</span>
                     <span className="text-[10px] font-mono text-slate-400">{item.publishedAt}</span>
+                    {item.archivedAt && (
+                      <span className="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                        Archived {formatArchiveDate(item.archivedAt)}
+                      </span>
+                    )}
                   </div>
                   <div className="font-bold text-sm text-slate-800 truncate" title={item.title}>{item.title}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
@@ -841,29 +945,45 @@ export default function WorkspaceInsights({
                 </div>
 
                 <div className="flex items-center gap-2 xl:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => beginEditEntry(item)}
-                    className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition"
-                    title={`Edit ${item.title}`}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deletingEntryId === item.id}
-                    onClick={() => handleDeleteEntry(item)}
-                    className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title={`Remove ${item.title}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {managementView === 'active' ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => beginEditEntry(item)}
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition"
+                        title={`Edit ${item.title}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={archivingEntryId === item.id}
+                        onClick={() => handleArchiveEntry(item)}
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={`Archive ${item.title}`}
+                      >
+                        <Archive className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={restoringEntryId === item.id}
+                      onClick={() => handleRestoreEntry(item)}
+                      className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={`Restore ${item.title}`}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <div className="py-12 text-center text-xs text-slate-400">
-              No uploaded entries match the current filters.
+              {managementView === 'active'
+                ? 'No active uploaded entries match the current filters.'
+                : `No archived entries from the last ${ARCHIVE_VISIBLE_DAYS} days match the current filters.`}
             </div>
           )}
         </div>

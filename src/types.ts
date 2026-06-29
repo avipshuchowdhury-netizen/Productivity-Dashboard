@@ -12,6 +12,8 @@ export interface AuditItem {
   state?: string;
   page?: string;
   theme?: 'positive' | 'negative';
+  archivedAt?: string;
+  archiveReason?: string;
 }
 
 export interface DashboardData {
