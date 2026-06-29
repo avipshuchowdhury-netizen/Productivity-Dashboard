@@ -163,47 +163,47 @@ export default function ContributorPortal({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primary: 'blue-600',
-          hover: 'hover:bg-blue-700',
-          border: 'border-blue-200 focus:border-blue-500',
-          text: 'text-blue-600',
-          lightBg: 'bg-blue-50',
-          headingColor: 'text-blue-900',
-          buttonBg: 'bg-blue-600 hover:bg-blue-700',
-          focusRing: 'focus:ring-blue-500/20'
+          primary: '#477ee9',
+          hover: 'hover:bg-[#fef5f3]',
+          border: 'border-[#fbdfd9] focus:border-[#477ee9]',
+          text: 'text-[#477ee9]',
+          lightBg: 'bg-[#edf3ff]',
+          headingColor: 'text-[#360802]',
+          buttonBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
+          focusRing: 'focus:ring-[#477ee9]/15'
         };
       case 'instagram':
         return {
-          primary: 'pink-600',
-          hover: 'hover:bg-pink-700',
-          border: 'border-pink-200 focus:border-pink-500',
-          text: 'text-pink-600',
-          lightBg: 'bg-pink-50',
-          headingColor: 'text-pink-900',
-          buttonBg: 'bg-pink-600 hover:bg-pink-700',
-          focusRing: 'focus:ring-pink-500/20'
+          primary: '#fb2d54',
+          hover: 'hover:bg-[#fef5f3]',
+          border: 'border-[#fbdfd9] focus:border-[#fb2d54]',
+          text: 'text-[#fb2d54]',
+          lightBg: 'bg-[#fff0f3]',
+          headingColor: 'text-[#360802]',
+          buttonBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
+          focusRing: 'focus:ring-[#fb2d54]/15'
         };
       case 'youtube':
         return {
-          primary: 'red-600',
-          hover: 'hover:bg-red-700',
-          border: 'border-red-200 focus:border-red-500',
-          text: 'text-red-600',
-          lightBg: 'bg-red-50',
-          headingColor: 'text-red-900',
-          buttonBg: 'bg-red-600 hover:bg-red-700',
-          focusRing: 'focus:ring-red-500/20'
+          primary: '#f73b20',
+          hover: 'hover:bg-[#fef5f3]',
+          border: 'border-[#fbdfd9] focus:border-[#f73b20]',
+          text: 'text-[#f73b20]',
+          lightBg: 'bg-[#fef5f3]',
+          headingColor: 'text-[#360802]',
+          buttonBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
+          focusRing: 'focus:ring-[#f73b20]/15'
         };
       default:
         return {
-          primary: 'orange-600',
-          hover: 'hover:bg-orange-700',
-          border: 'border-orange-200 focus:border-orange-500',
-          text: 'text-orange-600',
-          lightBg: 'bg-orange-50',
-          headingColor: 'text-orange-900',
-          buttonBg: 'bg-orange-600 hover:bg-orange-700',
-          focusRing: 'focus:ring-orange-500/20'
+          primary: '#f73b20',
+          hover: 'hover:bg-[#fef5f3]',
+          border: 'border-[#fbdfd9] focus:border-[#f73b20]',
+          text: 'text-[#f73b20]',
+          lightBg: 'bg-[#fef5f3]',
+          headingColor: 'text-[#360802]',
+          buttonBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
+          focusRing: 'focus:ring-[#f73b20]/15'
         };
     }
   };
@@ -277,20 +277,22 @@ export default function ContributorPortal({
   if (!onboardProfile) {
     return (
       <div id="contributor-onboarding" className="max-w-2xl mx-auto my-8 animate-fade-in font-sans">
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white border border-[#fbdfd9] rounded-2xl shadow-[0_8px_24px_rgba(247,59,32,0.10)] overflow-hidden">
           {/* Top visual graphic style header */}
-          <div className="p-8 bg-gradient-to-br from-slate-950 via-[#1E293B] to-[#0F172A] text-white relative">
-            <div className="absolute top-4 right-4 p-2 bg-white/10 rounded-lg text-orange-400">
+          <div className="p-8 bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_68%,#fbdfd9_100%)] text-white relative overflow-hidden">
+            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full border-[18px] border-white/20"></div>
+            <div className="absolute right-10 bottom-4 h-20 w-20 rounded-full border-[12px] border-white/15"></div>
+            <div className="absolute top-4 right-4 p-2 bg-white/15 rounded-xl text-white">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             
-            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-orange-400 bg-orange-400/20 px-2.5 py-1 rounded select-none">
+            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-white bg-white/15 px-2.5 py-1 rounded-xl select-none">
               SAMARTH WORKSPACE ACCESS
             </span>
             <h2 className="text-2xl font-display font-black mt-3 flex items-center gap-2">
-              <User className="w-6 h-6 text-orange-400" /> Contributor Registration & Onboarding
+              <User className="w-6 h-6 text-white" /> Contributor Registration & Onboarding
             </h2>
-            <p className="text-xs text-slate-300 mt-2 select-none leading-relaxed">
+            <p className="text-xs text-white/85 mt-2 select-none leading-relaxed">
               Welcome to the Single Admin Managed Analytics Review of Thematic Handles (SAMARTH) Workspace. Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
             </p>
           </div>
@@ -306,7 +308,7 @@ export default function ContributorPortal({
                   type="text"
                   required
                   placeholder="Contributor full name"
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg outline-hidden bg-slate-50 focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold text-slate-800"
+                  className="w-full px-3.5 py-2.5 border border-[#fbdfd9] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-white focus:ring-2 focus:ring-[#f73b20]/15 focus:border-[#f73b20] transition-all font-semibold text-slate-800"
                   value={oboName}
                   onChange={e => setOboName(e.target.value)}
                 />
@@ -320,7 +322,7 @@ export default function ContributorPortal({
                   type="text"
                   required
                   placeholder="e.g. Punjab Voice"
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg outline-hidden bg-slate-50 focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold text-slate-800"
+                  className="w-full px-3.5 py-2.5 border border-[#fbdfd9] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-white focus:ring-2 focus:ring-[#f73b20]/15 focus:border-[#f73b20] transition-all font-semibold text-slate-800"
                   value={oboPage}
                   onChange={e => setOboPage(e.target.value)}
                 />
@@ -330,7 +332,7 @@ export default function ContributorPortal({
             {/* Social channels link setup */}
             <div className="pt-4 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-1.5 mb-1 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-                <Globe className="w-3.5 h-3.5 text-orange-600" /> Configure Channel Profile URLs
+                <Globe className="w-3.5 h-3.5 text-[#f73b20]" /> Configure Channel Profile URLs
               </div>
               <p className="text-[11px] text-slate-400 select-none pb-1 font-medium leading-relaxed">
                 Provide live profile web links for your target channels. Leave blank to generate automatically based on page name.
@@ -385,7 +387,7 @@ export default function ContributorPortal({
               </span>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all text-xs cursor-pointer select-none"
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-white hover:bg-[#fef5f3] text-[#f73b20] border border-[#f73b20] font-bold rounded-2xl transition-all text-xs cursor-pointer select-none"
               >
                 Complete Onboarding <ArrowRight className="w-4 h-4" />
               </button>
@@ -426,7 +428,7 @@ export default function ContributorPortal({
             </div>
             <button
               onClick={handleResetProfile}
-              className="p-1 px-2 hover:bg-red-50 hover:text-red-650 text-slate-400 rounded transition flex items-center gap-0.5 text-[10px] font-bold cursor-pointer border border-transparent hover:border-red-100"
+              className="p-1 px-2 hover:bg-[#fff0f3] hover:text-[#fb2d54] text-slate-400 rounded transition flex items-center gap-0.5 text-[10px] font-bold cursor-pointer border border-transparent hover:border-[#fbdfd9]"
               title="Reset Profile / Switch User"
             >
               <LogOut className="w-3 h-3 shrink-0" /> Exit
@@ -629,7 +631,7 @@ export default function ContributorPortal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex items-center gap-1.5 px-6 py-2.5 text-white rounded-lg font-bold shadow-xs transition cursor-pointer ${themeColors.buttonBg}`}
+                className={`flex items-center gap-1.5 px-6 py-2.5 rounded-2xl font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${themeColors.buttonBg}`}
               >
                 {isSubmitting ? 'Syncing...' : 'Upload Performance Metric Log'}
               </button>
@@ -671,7 +673,7 @@ export default function ContributorPortal({
                 />
                 <button
                   type="submit"
-                  className={`px-3 py-1.5 text-white rounded font-bold shadow-xs transition shrink-0 ${themeColors.buttonBg}`}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition shrink-0 ${themeColors.buttonBg}`}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -711,9 +713,9 @@ export default function ContributorPortal({
           </div>
 
           {/* Guidelines on correct uploads */}
-          <div className="bg-slate-800 text-white rounded-xl shadow-xs p-5 space-y-2 text-xs">
-            <span className="text-orange-400 uppercase font-bold text-[10px] tracking-wide block">Data Quality Integrity Checklist:</span>
-            <ul className="space-y-1.5 text-slate-300 list-disc pl-4 text-[11px]">
+          <div className="bg-[#fef5f3] border border-[#fbdfd9] text-[#360802] rounded-xl shadow-xs p-5 space-y-2 text-xs">
+            <span className="text-[#f73b20] uppercase font-bold text-[10px] tracking-wide block">Data Quality Integrity Checklist:</span>
+            <ul className="space-y-1.5 text-[#6b4a45] list-disc pl-4 text-[11px]">
               <li>Use absolute values of views and shares from platform native insights.</li>
               <li>Always attach exact channel page to retain real-time mapping consistency.</li>
               <li>Attach post proof URLs so supervisors can conduct target sample checks easily.</li>

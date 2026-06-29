@@ -40,43 +40,43 @@ export default function EntryManagementArchive({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primaryText: 'text-blue-600',
-          primaryBg: 'bg-blue-600',
-          primaryBorder: 'border-blue-500 focus:border-blue-500 focus:ring-blue-500',
-          accentBorder: 'border-blue-100 hover:border-blue-300',
-          primaryHover: 'hover:bg-blue-700',
-          lightBg: 'bg-blue-50',
-          outlineRing: 'focus:outline-blue-500'
+          primaryText: 'text-[#477ee9]',
+          primaryBg: 'bg-[#477ee9]',
+          primaryBorder: 'border-[#fbdfd9] focus:border-[#477ee9] focus:ring-[#477ee9]/15',
+          accentBorder: 'border-[#edf3ff] hover:border-[#477ee9]',
+          primaryHover: 'hover:bg-[#376bd0]',
+          lightBg: 'bg-[#edf3ff]',
+          outlineRing: 'focus:outline-[#477ee9]'
         };
       case 'instagram':
         return {
-          primaryText: 'text-pink-600',
-          primaryBg: 'bg-pink-600',
-          primaryBorder: 'border-pink-500 focus:border-pink-500 focus:ring-pink-500',
-          accentBorder: 'border-pink-100 hover:border-pink-300',
-          primaryHover: 'hover:bg-pink-700',
-          lightBg: 'bg-pink-50',
-          outlineRing: 'focus:outline-pink-500'
+          primaryText: 'text-[#fb2d54]',
+          primaryBg: 'bg-[#fb2d54]',
+          primaryBorder: 'border-[#fbdfd9] focus:border-[#fb2d54] focus:ring-[#fb2d54]/15',
+          accentBorder: 'border-[#fff0f3] hover:border-[#fb2d54]',
+          primaryHover: 'hover:bg-[#e52349]',
+          lightBg: 'bg-[#fff0f3]',
+          outlineRing: 'focus:outline-[#fb2d54]'
         };
       case 'youtube':
         return {
-          primaryText: 'text-red-600',
-          primaryBg: 'bg-red-600',
-          primaryBorder: 'border-red-500 focus:border-red-500 focus:ring-red-500',
-          accentBorder: 'border-red-100 hover:border-red-300',
-          primaryHover: 'hover:bg-red-700',
-          lightBg: 'bg-red-50',
-          outlineRing: 'focus:outline-red-500'
+          primaryText: 'text-[#f73b20]',
+          primaryBg: 'bg-[#f73b20]',
+          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
+          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
+          primaryHover: 'hover:bg-[#dd2f17]',
+          lightBg: 'bg-[#fef5f3]',
+          outlineRing: 'focus:outline-[#f73b20]'
         };
       default:
         return {
-          primaryText: 'text-orange-600',
-          primaryBg: 'bg-orange-600',
-          primaryBorder: 'border-orange-500 focus:border-orange-500 focus:ring-orange-500',
-          accentBorder: 'border-orange-100 hover:border-orange-300',
-          primaryHover: 'hover:bg-orange-700',
-          lightBg: 'bg-orange-50',
-          outlineRing: 'focus:outline-orange-500'
+          primaryText: 'text-[#f73b20]',
+          primaryBg: 'bg-[#f73b20]',
+          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
+          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
+          primaryHover: 'hover:bg-[#dd2f17]',
+          lightBg: 'bg-[#fef5f3]',
+          outlineRing: 'focus:outline-[#f73b20]'
         };
     }
   };
