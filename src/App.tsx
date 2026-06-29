@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Archive,
   BarChart2, 
   RefreshCw, 
   Target, 
@@ -12,6 +13,7 @@ import { DashboardData, AuditItem, SocialPage, DEFAULT_PAGES } from './types';
 // Import Modular Components
 import WorkspaceInsights from './components/WorkspaceInsights';
 import ContributorPortal from './components/ContributorPortal';
+import EntryManagementArchive from './components/EntryManagementArchive';
 
 const AUDIT_STORAGE_KEY = 'samarth_audit_items';
 
@@ -50,7 +52,7 @@ const normalizeAuditItem = (item: AuditItem): AuditItem => ({
 
 export default function App() {
   // Current Selected Tab
-  const [activeTab, setActiveTab] = useState<'insights' | 'contributor'>('insights');
+  const [activeTab, setActiveTab] = useState<'insights' | 'contributor' | 'management'>('insights');
   
   // High-level Platform Theme state
   const [activePlatform, setActivePlatform] = useState<'all' | 'facebook' | 'instagram' | 'youtube'>('all');
@@ -281,7 +283,13 @@ export default function App() {
   const tabs = [
     { id: 'insights', label: 'Workspace Insights', icon: BarChart2 },
     { id: 'contributor', label: 'Data Upload', icon: Upload },
+    { id: 'management', label: 'Entry Management', icon: Archive },
   ] as const;
+  const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
+    insights: 'Insights',
+    contributor: 'Upload',
+    management: 'Manage'
+  };
 
   return (
     <div id="full-app-root" className="min-h-screen bg-[#F1F5F9] flex font-sans text-slate-800 overflow-x-hidden">
@@ -315,7 +323,7 @@ export default function App() {
               >
                 <Icon className="w-5.5 h-5.5 shrink-0" />
                 <span className="text-[8px] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[76px] scale-95 uppercase font-mono">
-                  {tab.id === 'insights' ? 'Insights' : 'Upload'}
+                  {shortTabLabels[tab.id]}
                 </span>
               </button>
             );
@@ -394,7 +402,7 @@ export default function App() {
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{tab.label.split(' ')[0]}</span>
+                <span>{shortTabLabels[tab.id]}</span>
               </button>
             );
           })}
@@ -427,8 +435,6 @@ export default function App() {
                     savedPages={savedPages}
                     activePlatform={activePlatform}
                     onChangePlatform={setActivePlatform}
-                    onUpdateAuditItem={handleUpdateAuditItem}
-                    onArchiveAuditItem={handleArchiveAuditItem}
                   />
                 )}
 
@@ -441,6 +447,18 @@ export default function App() {
                     activePlatform={activePlatform}
                     onChangePlatform={setActivePlatform}
                     onAddAuditItem={handleAddAuditItem}
+                  />
+                )}
+
+                {/* Entry editing, soft archive, and restore controls */}
+                {activeTab === 'management' && (
+                  <EntryManagementArchive
+                    auditItems={data.auditItems}
+                    savedPages={savedPages}
+                    activePlatform={activePlatform}
+                    onChangePlatform={setActivePlatform}
+                    onUpdateAuditItem={handleUpdateAuditItem}
+                    onArchiveAuditItem={handleArchiveAuditItem}
                   />
                 )}
 
