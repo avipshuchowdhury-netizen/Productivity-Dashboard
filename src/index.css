@@ -1,49 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Source Serif 4", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {
   :root {
-    --color-signal-orange: #ff682c;
-    --color-sienna-bronze: #816729;
-    --color-carbon: #202020;
-    --color-graphite: #4d4d4d;
-    --color-slate: #828282;
-    --color-fog: #f5f5f5;
-    --color-mist: #efefef;
-    --color-chalk: #e8e8e8;
-    --color-paper: #ffffff;
-    --shadow-dashboard-card: 0 1px 3px rgba(32, 32, 32, 0.04), 0 4px 12px rgba(32, 32, 32, 0.03);
+    --color-ink: #17191c;
+    --color-pure-white: #ffffff;
+    --color-fog: #f7f7f8;
+    --color-ash: #4c4c4c;
+    --color-graphite: #777b86;
+    --color-dove: #a3a6af;
+    --color-slate: #8b8c8d;
+    --color-obsidian: #000000;
+    --color-rust: #5d2a1a;
+    --color-apricot-wash: #fbe1d1;
+    --color-sky-wash: #d3e3fc;
+    --color-facebook: #1877f2;
+    --color-instagram: #e1306c;
+    --color-youtube: #ff0000;
+    --shadow-dashboard-card: rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: var(--color-mist);
-    color: var(--color-carbon);
+    background-color: var(--color-fog);
+    color: var(--color-ink);
     letter-spacing: 0;
   }
 }
 
 #full-app-root {
-  background: var(--color-mist);
+  background: var(--color-fog);
+  color: var(--color-ink);
+}
+
+#full-app-root * {
+  letter-spacing: 0 !important;
 }
 
 #full-app-root .rounded-xl {
-  border-radius: 8px;
+  border-radius: 24px;
 }
 
 #full-app-root .rounded-lg {
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
-#full-app-root .rounded-2xl,
+#full-app-root .rounded-md {
+  border-radius: 12px;
+}
+
+#full-app-root .rounded-2xl {
+  border-radius: 24px;
+}
+
 #full-app-root button.rounded-2xl {
-  border-radius: 20px;
+  border-radius: 9999px;
 }
 
 #full-app-root .shadow-xs,
@@ -59,12 +76,51 @@
 #full-app-root input,
 #full-app-root select,
 #full-app-root textarea {
-  border-radius: 8px;
+  border-radius: 16px;
+}
+
+#full-app-root .bg-\[\#efefef\],
+#full-app-root .bg-\[\#f5f5f5\],
+#full-app-root .bg-slate-50,
+#full-app-root .bg-slate-50\/50,
+#full-app-root .bg-slate-100 {
+  background-color: var(--color-fog);
+}
+
+#full-app-root .border-\[\#e8e8e8\],
+#full-app-root .border-slate-100,
+#full-app-root .border-slate-200,
+#full-app-root .border-slate-200\/80 {
+  border-color: rgba(163, 166, 175, 0.55);
+}
+
+#full-app-root .text-\[\#202020\],
+#full-app-root .text-slate-900,
+#full-app-root .text-slate-800,
+#full-app-root .text-slate-700 {
+  color: var(--color-ink);
+}
+
+#full-app-root .text-\[\#4d4d4d\],
+#full-app-root .text-slate-600 {
+  color: var(--color-ash);
+}
+
+#full-app-root .text-\[\#828282\],
+#full-app-root .text-slate-500,
+#full-app-root .text-slate-400 {
+  color: var(--color-graphite);
+}
+
+#full-app-root .hover\:bg-slate-50:hover,
+#full-app-root .hover\:bg-slate-100:hover,
+#full-app-root .hover\:bg-white:hover {
+  background-color: var(--color-pure-white);
 }
 
 ::selection {
-  background: rgba(255, 104, 44, 0.18);
-  color: var(--color-carbon);
+  background: rgba(251, 225, 209, 0.9);
+  color: var(--color-ink);
 }
 
 /* Custom scrollbar styles */
@@ -73,12 +129,12 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #efefef;
+  background: #f7f7f8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cfcfcf;
+  background: #a3a6af;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #828282;
+  background: #777b86;
 }

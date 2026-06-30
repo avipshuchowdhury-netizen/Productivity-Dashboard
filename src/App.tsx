@@ -132,14 +132,14 @@ export default function App() {
         };
       default:
         return {
-          headerText: 'text-[#ff682c]',
-          sideText: 'text-[#ff682c]',
-          logoBg: 'bg-white border border-[#828282]',
-          logoText: 'text-[#202020]',
-          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          accentText: 'text-[#ff682c]',
-          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
-          sideActive: 'bg-[#202020] text-white'
+          headerText: 'text-[#5d2a1a]',
+          sideText: 'text-[#5d2a1a]',
+          logoBg: 'bg-white border border-[#a3a6af]',
+          logoText: 'text-[#17191c]',
+          btnBg: 'bg-[#17191c] text-white hover:bg-[#000000]',
+          accentText: 'text-[#5d2a1a]',
+          accentBg: 'bg-[#fbe1d1] text-[#5d2a1a] border border-[#f1c7ae]',
+          sideActive: 'bg-[#17191c] text-white'
         };
     }
   };
@@ -281,9 +281,9 @@ export default function App() {
 
   // Navigation tab styling helpers
   const tabs = [
-    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
-    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
-    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
+    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
+    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
+    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
   ] as const;
   const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
     insights: 'Insights',
@@ -292,14 +292,14 @@ export default function App() {
   };
 
   return (
-    <div id="full-app-root" className="min-h-screen flex font-sans text-[#202020] overflow-x-hidden">
+    <div id="full-app-root" className="min-h-screen flex font-sans text-[#17191c] overflow-x-hidden">
       
       {/* Left Navigation Rail (SAMARTH Theme) */}
       <aside id="left-sidebar-rail" className="hidden">
         {/* Sidebar Logo branded as SAMARTH with dynamic platform color matching */}
         <div className={`w-18 h-18 rounded-xl flex flex-col items-center justify-center font-bold text-xs select-none text-center px-1 font-display transition-all duration-300 ${appTheme.logoBg}`}>
           <span className={`font-extrabold uppercase tracking-[0.03em] text-[11px] ${appTheme.logoText}`}>SAMARTH</span>
-          <span className="text-[7px] text-[#ff682c] uppercase tracking-widest leading-none mt-0.5 font-bold">WORKSPACE</span>
+          <span className={`text-[7px] uppercase tracking-widest leading-none mt-0.5 font-bold ${appTheme.sideText}`}>WORKSPACE</span>
         </div>
 
         {/* Sidebar Nav Buttons */}
@@ -317,7 +317,7 @@ export default function App() {
                 className={`w-full py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center relative group cursor-pointer ${
                   isSelected
                     ? appTheme.sideActive
-                    : 'text-[#4d4d4d] border border-transparent hover:border-[#e8e8e8] hover:bg-[#f5f5f5]'
+                    : 'text-[#4c4c4c] border border-transparent hover:border-[#a3a6af]/60 hover:bg-white'
                 }`}
                 title={tab.label}
               >
@@ -333,14 +333,14 @@ export default function App() {
         </nav>
 
         {/* Dynamic counter widget inside sidebar */}
-        <div className="w-18 px-1 py-2 bg-[#f5f5f5] rounded-xl text-center border border-[#e8e8e8] mb-2 hidden lg:block">
-          <p className="text-[7px] text-[#6b4a45] font-bold uppercase tracking-wider">Metrics</p>
+        <div className="w-18 px-1 py-2 bg-[#f7f7f8] rounded-xl text-center border border-[#a3a6af]/40 mb-2 hidden lg:block">
+          <p className="text-[7px] text-[#777b86] font-bold uppercase tracking-wider">Metrics</p>
           <span className={`text-xs font-bold font-mono transition-colors duration-350 ${appTheme.sideText}`}>{data.auditItems.length}</span>
         </div>
 
         {/* Avatar block */}
-        <div className="mt-2 pt-4 border-t border-[#e8e8e8] w-full flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full bg-white border-2 border-[#ff682c] text-[#ff682c] flex items-center justify-center font-bold text-xs select-none">
+        <div className="mt-2 pt-4 border-t border-[#a3a6af]/40 w-full flex flex-col items-center">
+          <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none ${appTheme.headerText}`}>
             S
           </div>
         </div>
@@ -350,14 +350,14 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header */}
-        <header className="shrink-0 bg-[#efefef] flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50">
+        <header className="shrink-0 bg-white flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50 border-b border-[#a3a6af]/45">
           <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`p-1.5 rounded-lg md:hidden ${appTheme.accentBg}`}>
               <Target className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
-              <h1 className="text-xl md:text-3xl font-normal tracking-[-0.02em] leading-none font-display text-[#202020]">
+              <h1 className="text-xl md:text-3xl font-normal tracking-[-0.02em] leading-none font-display text-[#17191c]">
                 {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
               </h1>
               <span className={`text-[9px] md:text-[10px] font-semibold tracking-normal hidden sm:inline md:ml-1 uppercase font-mono ${appTheme.headerText}`}>
@@ -366,7 +366,7 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center justify-center bg-white border border-[#828282] rounded-[200px] p-1.5 gap-1">
+          <nav className="hidden md:flex items-center justify-center bg-[#f7f7f8] border border-[#a3a6af]/60 rounded-[200px] p-1.5 gap-1">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isSelected = activeTab === tab.id;
@@ -378,11 +378,11 @@ export default function App() {
                     setErrorMessage('');
                   }}
                   className={`flex items-center gap-2 rounded-[200px] px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                    isSelected ? appTheme.sideActive : 'text-[#4d4d4d] hover:bg-[#f5f5f5]'
+                    isSelected ? appTheme.sideActive : 'text-[#4c4c4c] hover:bg-white'
                   }`}
                   title={tab.label}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#828282]'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#777b86]'}`} />
                   <span>{shortTabLabels[tab.id]}</span>
                 </button>
               );
@@ -392,10 +392,10 @@ export default function App() {
           <div className="flex gap-4 md:gap-5 items-center">
             {/* Dynamic score statistic */}
             <div className="text-right hidden md:block">
-              <p className="text-[9px] uppercase text-[#6b4a45] font-extrabold tracking-widest">Entries</p>
+              <p className="text-[9px] uppercase text-[#777b86] font-extrabold tracking-widest">Entries</p>
               <p className={`text-sm font-bold ${appTheme.headerText}`}>{data.auditItems.length}</p>
             </div>
-            <div className="h-8 w-[1px] bg-[#e8e8e8] hidden md:block"></div>
+            <div className="h-8 w-[1px] bg-[#a3a6af]/45 hidden md:block"></div>
 
             {/* Sync trigger button */}
             <button 
@@ -411,7 +411,7 @@ export default function App() {
         </header>
 
         {/* Mobile Horizontal Navigation Tabs */}
-        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-white border border-[#828282] rounded-[200px] p-1.5 gap-1.5 select-none z-40">
+        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-white border border-[#a3a6af]/60 rounded-[200px] p-1.5 gap-1.5 select-none z-40">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -425,10 +425,10 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[200px] text-xs font-semibold select-none transition-colors cursor-pointer ${
                   isSelected 
                     ? appTheme.btnBg
-                    : 'text-[#4d4d4d] hover:bg-[#f5f5f5]'
+                    : 'text-[#4c4c4c] hover:bg-[#f7f7f8]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#828282]'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#777b86]'}`} />
                 <span>{shortTabLabels[tab.id]}</span>
               </button>
             );
@@ -496,7 +496,7 @@ export default function App() {
         </main>
 
         {/* Professional Humble Footer */}
-        <footer id="workspace-footer" className="bg-[#efefef] border-t border-[#e8e8e8] py-4 text-center text-[11px] text-[#828282] select-none">
+        <footer id="workspace-footer" className="bg-[#f7f7f8] border-t border-[#a3a6af]/45 py-4 text-center text-[11px] text-[#777b86] select-none">
           <p>© 2026 SAMARTH Social Media Team Workspace. All audits aligned and synced with process metrics.</p>
         </footer>
 

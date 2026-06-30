@@ -70,13 +70,13 @@ export default function EntryManagementArchive({
         };
       default:
         return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          outlineRing: 'focus:outline-[#202020]'
+          primaryText: 'text-[#5d2a1a]',
+          primaryBg: 'bg-[#17191c]',
+          primaryBorder: 'border-[#a3a6af]/60 focus:border-[#5d2a1a] focus:ring-[#5d2a1a]/10',
+          accentBorder: 'border-[#f1c7ae] hover:border-[#5d2a1a]',
+          primaryHover: 'hover:bg-[#000000]',
+          lightBg: 'bg-[#fbe1d1]',
+          outlineRing: 'focus:outline-[#5d2a1a]'
         };
     }
   };
@@ -376,7 +376,7 @@ export default function EntryManagementArchive({
       </div>
 
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-slate-50/60">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-[#d3e3fc]">
           <div className="px-5 py-3">
             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Active Stored</div>
             <div className="text-lg font-extrabold text-slate-800">{activeStoredEntryCount}</div>
@@ -557,7 +557,7 @@ export default function EntryManagementArchive({
                     <span className="text-[10px] uppercase font-bold text-slate-400">{item.format}</span>
                     <span className="text-[10px] font-mono text-slate-400">{item.publishedAt}</span>
                     {item.archivedAt && (
-                      <span className="text-[10px] uppercase font-bold text-[#816729] bg-[#f5f5f5] px-2 py-0.5 rounded">
+                      <span className="text-[10px] uppercase font-bold text-[#5d2a1a] bg-[#fbe1d1] px-2 py-0.5 rounded">
                         Archived {formatArchiveDate(item.archivedAt)}
                       </span>
                     )}
@@ -567,7 +567,7 @@ export default function EntryManagementArchive({
                     <span>{item.author || 'Unknown Contributor'}</span>
                     <span>{item.page || 'No page'}</span>
                     <span>{item.state || 'No state'}</span>
-                    <span className={item.theme === 'negative' ? 'text-[#816729] font-semibold' : 'text-[#4d4d4d] font-semibold'}>
+                    <span className={item.theme === 'negative' ? 'text-[#5d2a1a] font-semibold' : 'text-[#4c4c4c] font-semibold'}>
                       {item.theme === 'negative' ? 'Negative' : 'Positive'}
                     </span>
                   </div>
@@ -597,7 +597,7 @@ export default function EntryManagementArchive({
                         type="button"
                         disabled={archivingEntryId === item.id}
                         onClick={() => handleArchiveEntry(item)}
-                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#202020] hover:bg-[#f5f5f5] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#17191c] hover:bg-[#f7f7f8] transition disabled:opacity-50 disabled:cursor-not-allowed"
                         title={`Archive ${item.title}`}
                       >
                         <Archive className="w-4 h-4" />
@@ -608,7 +608,7 @@ export default function EntryManagementArchive({
                       type="button"
                       disabled={restoringEntryId === item.id}
                       onClick={() => handleRestoreEntry(item)}
-                      className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#202020] hover:bg-[#f5f5f5] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#17191c] hover:bg-[#f7f7f8] transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title={`Restore ${item.title}`}
                     >
                       <RotateCcw className="w-4 h-4" />
