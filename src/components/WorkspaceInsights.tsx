@@ -43,39 +43,39 @@ export default function WorkspaceInsights({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
+          primaryText: 'text-[#1877f2]',
+          primaryBg: 'bg-[#1877f2]',
+          primaryBorder: 'border-[#bfd8ff] focus:border-[#1877f2] focus:ring-[#1877f2]/10',
+          accentBorder: 'border-[#bfd8ff] hover:border-[#1877f2]',
+          primaryHover: 'hover:bg-[#0b5fcc]',
+          lightBg: 'bg-[#eef5ff]',
+          textColor: 'text-[#1877f2]',
+          outlineRing: 'focus:outline-[#1877f2]',
+          chartFill: '#1877f2'
         };
       case 'instagram':
         return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
+          primaryText: 'text-[#e1306c]',
+          primaryBg: 'bg-[#e1306c]',
+          primaryBorder: 'border-[#ffc2da] focus:border-[#e1306c] focus:ring-[#e1306c]/10',
+          accentBorder: 'border-[#ffc2da] hover:border-[#e1306c]',
+          primaryHover: 'hover:bg-[#c13584]',
+          lightBg: 'bg-[#fff0f6]',
+          textColor: 'text-[#e1306c]',
+          outlineRing: 'focus:outline-[#e1306c]',
+          chartFill: '#e1306c'
         };
       case 'youtube':
         return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
+          primaryText: 'text-[#ff0000]',
+          primaryBg: 'bg-[#ff0000]',
+          primaryBorder: 'border-[#ffb8b8] focus:border-[#ff0000] focus:ring-[#ff0000]/10',
+          accentBorder: 'border-[#ffb8b8] hover:border-[#ff0000]',
+          primaryHover: 'hover:bg-[#cc0000]',
+          lightBg: 'bg-[#fff1f1]',
+          textColor: 'text-[#ff0000]',
+          outlineRing: 'focus:outline-[#ff0000]',
+          chartFill: '#ff0000'
         };
       default:
         return {
@@ -473,8 +473,8 @@ export default function WorkspaceInsights({
                   key={plat}
                   onClick={() => setSelectedPlatform(plat)}
                   className={`px-2.5 py-1 text-[10px] sm:text-xs font-bold capitalize transition rounded-md cursor-pointer ${
-                    selectedPlatform === plat 
-                      ? `bg-white ${theme.primaryText} shadow-2xs` 
+                    selectedPlatform === plat
+                      ? `${theme.primaryBg} text-white shadow-2xs`
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -589,8 +589,8 @@ export default function WorkspaceInsights({
                     key={met}
                     onClick={() => setSelectedMetric(met)}
                     className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer ${
-                      selectedMetric === met 
-                        ? `bg-white ${theme.primaryText} shadow-2xs` 
+                      selectedMetric === met
+                        ? `${theme.primaryBg} text-white shadow-2xs`
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -826,7 +826,7 @@ export default function WorkspaceInsights({
                   onClick={() => setSelectedContributorMetric(metric)}
                   className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer whitespace-nowrap ${
                     selectedContributorMetric === metric
-                      ? `bg-white ${theme.primaryText} shadow-2xs`
+                      ? `${theme.primaryBg} text-white shadow-2xs`
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >

@@ -99,36 +99,36 @@ export default function App() {
     switch (activePlatform) {
       case 'facebook':
         return {
-          headerText: 'text-[#ff682c]',
-          sideText: 'text-[#ff682c]',
-          logoBg: 'bg-white border border-[#828282]',
-          logoText: 'text-[#202020]',
-          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          accentText: 'text-[#ff682c]',
-          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
-          sideActive: 'bg-[#202020] text-white'
+          headerText: 'text-[#1877f2]',
+          sideText: 'text-[#1877f2]',
+          logoBg: 'bg-white border border-[#1877f2]',
+          logoText: 'text-[#1877f2]',
+          btnBg: 'bg-[#1877f2] text-white hover:bg-[#0b5fcc]',
+          accentText: 'text-[#1877f2]',
+          accentBg: 'bg-[#eef5ff] text-[#1877f2] border border-[#bfd8ff]',
+          sideActive: 'bg-[#1877f2] text-white'
         };
       case 'instagram':
         return {
-          headerText: 'text-[#ff682c]',
-          sideText: 'text-[#ff682c]',
-          logoBg: 'bg-white border border-[#828282]',
-          logoText: 'text-[#202020]',
-          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          accentText: 'text-[#ff682c]',
-          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
-          sideActive: 'bg-[#202020] text-white'
+          headerText: 'text-[#e1306c]',
+          sideText: 'text-[#e1306c]',
+          logoBg: 'bg-white border border-[#e1306c]',
+          logoText: 'text-[#e1306c]',
+          btnBg: 'bg-[#e1306c] text-white hover:bg-[#c13584]',
+          accentText: 'text-[#e1306c]',
+          accentBg: 'bg-[#fff0f6] text-[#e1306c] border border-[#ffc2da]',
+          sideActive: 'bg-[#e1306c] text-white'
         };
       case 'youtube':
         return {
-          headerText: 'text-[#ff682c]',
-          sideText: 'text-[#ff682c]',
-          logoBg: 'bg-white border border-[#828282]',
-          logoText: 'text-[#202020]',
-          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          accentText: 'text-[#ff682c]',
-          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
-          sideActive: 'bg-[#202020] text-white'
+          headerText: 'text-[#ff0000]',
+          sideText: 'text-[#ff0000]',
+          logoBg: 'bg-white border border-[#ff0000]',
+          logoText: 'text-[#ff0000]',
+          btnBg: 'bg-[#ff0000] text-white hover:bg-[#cc0000]',
+          accentText: 'text-[#ff0000]',
+          accentBg: 'bg-[#fff1f1] text-[#ff0000] border border-[#ffb8b8]',
+          sideActive: 'bg-[#ff0000] text-white'
         };
       default:
         return {

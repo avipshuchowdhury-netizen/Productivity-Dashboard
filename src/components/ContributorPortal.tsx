@@ -163,36 +163,36 @@ export default function ContributorPortal({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primary: '#ff682c',
-          hover: 'hover:bg-[#f5f5f5]',
-          border: 'border-[#e8e8e8] focus:border-[#202020]',
-          text: 'text-[#202020]',
-          lightBg: 'bg-[#f5f5f5]',
-          headingColor: 'text-[#202020]',
-          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          focusRing: 'focus:ring-[#202020]/10'
+          primary: '#1877f2',
+          hover: 'hover:bg-[#eef5ff]',
+          border: 'border-[#bfd8ff] focus:border-[#1877f2]',
+          text: 'text-[#1877f2]',
+          lightBg: 'bg-[#eef5ff]',
+          headingColor: 'text-[#1877f2]',
+          buttonBg: 'bg-[#1877f2] text-white hover:bg-[#0b5fcc]',
+          focusRing: 'focus:ring-[#1877f2]/10'
         };
       case 'instagram':
         return {
-          primary: '#ff682c',
-          hover: 'hover:bg-[#f5f5f5]',
-          border: 'border-[#e8e8e8] focus:border-[#202020]',
-          text: 'text-[#202020]',
-          lightBg: 'bg-[#f5f5f5]',
-          headingColor: 'text-[#202020]',
-          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          focusRing: 'focus:ring-[#202020]/10'
+          primary: '#e1306c',
+          hover: 'hover:bg-[#fff0f6]',
+          border: 'border-[#ffc2da] focus:border-[#e1306c]',
+          text: 'text-[#e1306c]',
+          lightBg: 'bg-[#fff0f6]',
+          headingColor: 'text-[#e1306c]',
+          buttonBg: 'bg-[#e1306c] text-white hover:bg-[#c13584]',
+          focusRing: 'focus:ring-[#e1306c]/10'
         };
       case 'youtube':
         return {
-          primary: '#ff682c',
-          hover: 'hover:bg-[#f5f5f5]',
-          border: 'border-[#e8e8e8] focus:border-[#202020]',
-          text: 'text-[#202020]',
-          lightBg: 'bg-[#f5f5f5]',
-          headingColor: 'text-[#202020]',
-          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
-          focusRing: 'focus:ring-[#202020]/10'
+          primary: '#ff0000',
+          hover: 'hover:bg-[#fff1f1]',
+          border: 'border-[#ffb8b8] focus:border-[#ff0000]',
+          text: 'text-[#ff0000]',
+          lightBg: 'bg-[#fff1f1]',
+          headingColor: 'text-[#ff0000]',
+          buttonBg: 'bg-[#ff0000] text-white hover:bg-[#cc0000]',
+          focusRing: 'focus:ring-[#ff0000]/10'
         };
       default:
         return {
@@ -512,6 +512,7 @@ export default function ContributorPortal({
                     onChange={e => {
                       const plat = e.target.value as 'facebook' | 'instagram' | 'youtube';
                       setNewPlatform(plat);
+                      onChangePlatform(plat);
                     }}
                   >
                     <option value="instagram">Instagram</option>
