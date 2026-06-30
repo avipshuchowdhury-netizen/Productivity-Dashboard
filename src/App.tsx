@@ -16,6 +16,7 @@ import ContributorPortal from './components/ContributorPortal';
 import EntryManagementArchive from './components/EntryManagementArchive';
 
 const AUDIT_STORAGE_KEY = 'samarth_audit_items';
+const SAMARTH_FULL_FORM = 'Single Admin Managed Analytics Review of Thematic Handles';
 
 const readLocalAuditItems = (): AuditItem[] => {
   try {
@@ -351,18 +352,24 @@ export default function App() {
         
         {/* Top Header */}
         <header className="shrink-0 bg-[#fffaf8]/95 flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50 border-b border-[#f8a4a4]">
-          <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="max-w-[1200px] w-full mx-auto flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div className="flex items-start gap-3 min-w-0">
             <div className={`p-1.5 rounded-lg md:hidden ${appTheme.accentBg}`}>
               <Target className="w-5 h-5 animate-pulse" />
             </div>
-            <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
-              <h1 className="text-xl md:text-3xl font-semibold leading-none font-display text-[#360802]">
-                {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
+            <div className="min-w-0">
+              <div className={`text-[11px] sm:text-xs font-extrabold uppercase tracking-wider ${appTheme.headerText}`}>
+                Team Workspace
+              </div>
+              <h1 className="mt-1 text-3xl sm:text-4xl lg:text-5xl font-semibold leading-none font-display text-[#360802]">
+                SAMARTH
               </h1>
-              <span className={`text-[9px] md:text-[10px] font-semibold tracking-normal hidden sm:inline md:ml-1 uppercase font-mono ${appTheme.headerText}`}>
-                SAMARTH (Single Admin Managed Analytics Review of Thematic Handles)
-              </span>
+              <p className="mt-1 text-sm md:text-base font-semibold leading-snug text-[#6c3a2f] max-w-[760px]">
+                {SAMARTH_FULL_FORM}
+              </p>
+              <div className={`mt-2 inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${appTheme.accentBg}`}>
+                Active section: {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
+              </div>
             </div>
           </div>
 

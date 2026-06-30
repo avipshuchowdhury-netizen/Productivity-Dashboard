@@ -25,6 +25,8 @@ interface Props {
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
 }
 
+const SAMARTH_FULL_FORM = 'Single Admin Managed Analytics Review of Thematic Handles';
+
 export interface ContributorProfile {
   contributorName: string;
   pageName: string;
@@ -286,13 +288,21 @@ export default function ContributorPortal({
             </div>
             
             <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#6c3a2f] bg-[#fffaf8] border border-[#f8a4a4] px-2.5 py-1 rounded-xl select-none">
-              SAMARTH WORKSPACE ACCESS
+              Team Workspace Access
             </span>
-            <h2 className="text-3xl font-display font-normal tracking-[-0.02em] leading-none mt-3 flex items-center gap-2">
+            <div className="mt-3">
+              <h1 className="text-4xl md:text-5xl font-display font-semibold leading-none text-[#360802]">
+                SAMARTH
+              </h1>
+              <p className="mt-2 max-w-xl text-sm md:text-base font-semibold leading-snug text-[#6c3a2f]">
+                {SAMARTH_FULL_FORM}
+              </p>
+            </div>
+            <h2 className="text-xl md:text-2xl font-display font-semibold leading-tight mt-5 flex items-center gap-2">
               <User className="w-6 h-6 text-[#f73b20]" /> Contributor Registration & Onboarding
             </h2>
             <p className="text-xs text-[#6c3a2f] mt-2 select-none leading-relaxed max-w-xl">
-              Welcome to the Single Admin Managed Analytics Review of Thematic Handles (SAMARTH) Workspace. Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
+              Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
             </p>
           </div>
 
