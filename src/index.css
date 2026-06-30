@@ -1,50 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Source Serif 4", Georgia, serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {
   :root {
-    --color-ink: #17191c;
-    --color-pure-white: #ffffff;
-    --color-fog: #f7f7f8;
-    --color-ash: #4c4c4c;
-    --color-graphite: #777b86;
-    --color-dove: #a3a6af;
-    --color-slate: #8b8c8d;
-    --color-obsidian: #000000;
-    --color-rust: #5d2a1a;
-    --color-apricot-wash: #fbe1d1;
-    --color-sky-wash: #d3e3fc;
+    --color-brandwood: #360802;
+    --color-coral-flame: #f73b20;
+    --color-coral-soft: #f8a4a4;
+    --color-sunset-fade: #fef5f3;
+    --color-blush-mist: #fbdfd9;
+    --color-warm-paper: #fffaf8;
+    --color-mint-action: #34c771;
+    --color-cobalt-pulse: #477ee9;
+    --color-magenta-spark: #fb2d54;
+    --color-gold-wash: #fff1b8;
+    --color-sky-wash: #e6f0ff;
+    --color-plum-wash: #ffe8f0;
     --color-facebook: #1877f2;
     --color-instagram: #e1306c;
     --color-youtube: #ff0000;
-    --shadow-dashboard-card: rgba(4, 23, 43, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+    --shadow-dashboard-card: rgba(247, 59, 32, 0.12) 0px 8px 24px 0px, rgba(247, 59, 32, 0.06) 0px 2px 8px 0px;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: var(--color-fog);
-    color: var(--color-ink);
+    background-color: var(--color-sunset-fade);
+    color: var(--color-brandwood);
     letter-spacing: 0;
   }
 }
 
 #full-app-root {
-  background: var(--color-fog);
-  color: var(--color-ink);
-}
-
-#full-app-root * {
-  letter-spacing: 0 !important;
+  background:
+    linear-gradient(135deg, rgba(248, 164, 164, 0.34) 0%, rgba(254, 245, 243, 0.92) 36%, rgba(251, 223, 217, 0.85) 100%);
+  color: var(--color-brandwood);
 }
 
 #full-app-root .rounded-xl {
-  border-radius: 24px;
+  border-radius: 16px;
 }
 
 #full-app-root .rounded-lg {
@@ -56,11 +54,11 @@
 }
 
 #full-app-root .rounded-2xl {
-  border-radius: 24px;
+  border-radius: 16px;
 }
 
 #full-app-root button.rounded-2xl {
-  border-radius: 9999px;
+  border-radius: 16px;
 }
 
 #full-app-root .shadow-xs,
@@ -79,48 +77,54 @@
   border-radius: 16px;
 }
 
+#full-app-root .bg-white {
+  background-color: var(--color-warm-paper);
+}
+
 #full-app-root .bg-\[\#efefef\],
+#full-app-root .bg-\[\#f7f7f8\],
 #full-app-root .bg-\[\#f5f5f5\],
 #full-app-root .bg-slate-50,
 #full-app-root .bg-slate-50\/50,
 #full-app-root .bg-slate-100 {
-  background-color: var(--color-fog);
+  background-color: var(--color-sunset-fade);
 }
 
 #full-app-root .border-\[\#e8e8e8\],
 #full-app-root .border-slate-100,
 #full-app-root .border-slate-200,
 #full-app-root .border-slate-200\/80 {
-  border-color: rgba(163, 166, 175, 0.55);
+  border-color: rgba(247, 59, 32, 0.22);
 }
 
+#full-app-root .text-\[\#17191c\],
 #full-app-root .text-\[\#202020\],
 #full-app-root .text-slate-900,
 #full-app-root .text-slate-800,
 #full-app-root .text-slate-700 {
-  color: var(--color-ink);
+  color: var(--color-brandwood);
 }
 
 #full-app-root .text-\[\#4d4d4d\],
 #full-app-root .text-slate-600 {
-  color: var(--color-ash);
+  color: #6c3a2f;
 }
 
 #full-app-root .text-\[\#828282\],
 #full-app-root .text-slate-500,
 #full-app-root .text-slate-400 {
-  color: var(--color-graphite);
+  color: #9b6255;
 }
 
 #full-app-root .hover\:bg-slate-50:hover,
 #full-app-root .hover\:bg-slate-100:hover,
 #full-app-root .hover\:bg-white:hover {
-  background-color: var(--color-pure-white);
+  background-color: var(--color-blush-mist);
 }
 
 ::selection {
-  background: rgba(251, 225, 209, 0.9);
-  color: var(--color-ink);
+  background: rgba(247, 59, 32, 0.22);
+  color: var(--color-brandwood);
 }
 
 /* Custom scrollbar styles */
@@ -129,12 +133,12 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f7f7f8;
+  background: #fef5f3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #a3a6af;
+  background: #f8a4a4;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #777b86;
+  background: #f73b20;
 }

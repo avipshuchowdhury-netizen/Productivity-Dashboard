@@ -132,14 +132,14 @@ export default function App() {
         };
       default:
         return {
-          headerText: 'text-[#5d2a1a]',
-          sideText: 'text-[#5d2a1a]',
-          logoBg: 'bg-white border border-[#a3a6af]',
-          logoText: 'text-[#17191c]',
-          btnBg: 'bg-[#17191c] text-white hover:bg-[#000000]',
-          accentText: 'text-[#5d2a1a]',
-          accentBg: 'bg-[#fbe1d1] text-[#5d2a1a] border border-[#f1c7ae]',
-          sideActive: 'bg-[#17191c] text-white'
+          headerText: 'text-[#f73b20]',
+          sideText: 'text-[#f73b20]',
+          logoBg: 'bg-[#fffaf8] border border-[#f73b20]',
+          logoText: 'text-[#360802]',
+          btnBg: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white hover:opacity-90',
+          accentText: 'text-[#f73b20]',
+          accentBg: 'bg-[#fbdfd9] text-[#360802] border border-[#f8a4a4]',
+          sideActive: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white'
         };
     }
   };
@@ -281,9 +281,9 @@ export default function App() {
 
   // Navigation tab styling helpers
   const tabs = [
-    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
-    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
-    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#17191c] text-white', idleTile: 'bg-[#f7f7f8] text-[#777b86]' },
+    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#f73b20] text-white', idleTile: 'bg-[#fef5f3] text-[#f73b20]' },
+    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#477ee9] text-white', idleTile: 'bg-[#e6f0ff] text-[#477ee9]' },
+    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#fb2d54] text-white', idleTile: 'bg-[#ffe8f0] text-[#fb2d54]' },
   ] as const;
   const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
     insights: 'Insights',
@@ -292,7 +292,7 @@ export default function App() {
   };
 
   return (
-    <div id="full-app-root" className="min-h-screen flex font-sans text-[#17191c] overflow-x-hidden">
+    <div id="full-app-root" className="min-h-screen flex font-sans text-[#360802] overflow-x-hidden">
       
       {/* Left Navigation Rail (SAMARTH Theme) */}
       <aside id="left-sidebar-rail" className="hidden">
@@ -317,7 +317,7 @@ export default function App() {
                 className={`w-full py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center relative group cursor-pointer ${
                   isSelected
                     ? appTheme.sideActive
-                    : 'text-[#4c4c4c] border border-transparent hover:border-[#a3a6af]/60 hover:bg-white'
+                    : 'text-[#6c3a2f] border border-transparent hover:border-[#f8a4a4] hover:bg-[#fbdfd9]'
                 }`}
                 title={tab.label}
               >
@@ -333,13 +333,13 @@ export default function App() {
         </nav>
 
         {/* Dynamic counter widget inside sidebar */}
-        <div className="w-18 px-1 py-2 bg-[#f7f7f8] rounded-xl text-center border border-[#a3a6af]/40 mb-2 hidden lg:block">
-          <p className="text-[7px] text-[#777b86] font-bold uppercase tracking-wider">Metrics</p>
+        <div className="w-18 px-1 py-2 bg-[#fef5f3] rounded-xl text-center border border-[#f8a4a4] mb-2 hidden lg:block">
+          <p className="text-[7px] text-[#9b6255] font-bold uppercase tracking-wider">Metrics</p>
           <span className={`text-xs font-bold font-mono transition-colors duration-350 ${appTheme.sideText}`}>{data.auditItems.length}</span>
         </div>
 
         {/* Avatar block */}
-        <div className="mt-2 pt-4 border-t border-[#a3a6af]/40 w-full flex flex-col items-center">
+        <div className="mt-2 pt-4 border-t border-[#f8a4a4] w-full flex flex-col items-center">
           <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none ${appTheme.headerText}`}>
             S
           </div>
@@ -350,14 +350,14 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header */}
-        <header className="shrink-0 bg-white flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50 border-b border-[#a3a6af]/45">
+        <header className="shrink-0 bg-[#fffaf8]/95 flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50 border-b border-[#f8a4a4]">
           <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`p-1.5 rounded-lg md:hidden ${appTheme.accentBg}`}>
               <Target className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
-              <h1 className="text-xl md:text-3xl font-normal tracking-[-0.02em] leading-none font-display text-[#17191c]">
+              <h1 className="text-xl md:text-3xl font-semibold leading-none font-display text-[#360802]">
                 {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
               </h1>
               <span className={`text-[9px] md:text-[10px] font-semibold tracking-normal hidden sm:inline md:ml-1 uppercase font-mono ${appTheme.headerText}`}>
@@ -366,7 +366,7 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center justify-center bg-[#f7f7f8] border border-[#a3a6af]/60 rounded-[200px] p-1.5 gap-1">
+          <nav className="hidden md:flex items-center justify-center bg-[#fef5f3] border border-[#f8a4a4] rounded-[200px] p-1.5 gap-1 shadow-xs">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isSelected = activeTab === tab.id;
@@ -378,11 +378,11 @@ export default function App() {
                     setErrorMessage('');
                   }}
                   className={`flex items-center gap-2 rounded-[200px] px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                    isSelected ? appTheme.sideActive : 'text-[#4c4c4c] hover:bg-white'
+                    isSelected ? appTheme.sideActive : 'text-[#6c3a2f] hover:bg-[#fbdfd9]'
                   }`}
                   title={tab.label}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#777b86]'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#f73b20]'}`} />
                   <span>{shortTabLabels[tab.id]}</span>
                 </button>
               );
@@ -392,10 +392,10 @@ export default function App() {
           <div className="flex gap-4 md:gap-5 items-center">
             {/* Dynamic score statistic */}
             <div className="text-right hidden md:block">
-              <p className="text-[9px] uppercase text-[#777b86] font-extrabold tracking-widest">Entries</p>
+              <p className="text-[9px] uppercase text-[#9b6255] font-extrabold tracking-widest">Entries</p>
               <p className={`text-sm font-bold ${appTheme.headerText}`}>{data.auditItems.length}</p>
             </div>
-            <div className="h-8 w-[1px] bg-[#a3a6af]/45 hidden md:block"></div>
+            <div className="h-8 w-[1px] bg-[#f8a4a4] hidden md:block"></div>
 
             {/* Sync trigger button */}
             <button 
@@ -411,7 +411,7 @@ export default function App() {
         </header>
 
         {/* Mobile Horizontal Navigation Tabs */}
-        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-white border border-[#a3a6af]/60 rounded-[200px] p-1.5 gap-1.5 select-none z-40">
+        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-[#fffaf8] border border-[#f8a4a4] rounded-[200px] p-1.5 gap-1.5 select-none z-40 shadow-xs">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -425,10 +425,10 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[200px] text-xs font-semibold select-none transition-colors cursor-pointer ${
                   isSelected 
                     ? appTheme.btnBg
-                    : 'text-[#4c4c4c] hover:bg-[#f7f7f8]'
+                    : 'text-[#6c3a2f] hover:bg-[#fbdfd9]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#777b86]'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#f73b20]'}`} />
                 <span>{shortTabLabels[tab.id]}</span>
               </button>
             );
@@ -496,7 +496,7 @@ export default function App() {
         </main>
 
         {/* Professional Humble Footer */}
-        <footer id="workspace-footer" className="bg-[#f7f7f8] border-t border-[#a3a6af]/45 py-4 text-center text-[11px] text-[#777b86] select-none">
+        <footer id="workspace-footer" className="bg-[#fef5f3] border-t border-[#f8a4a4] py-4 text-center text-[11px] text-[#9b6255] select-none">
           <p>© 2026 SAMARTH Social Media Team Workspace. All audits aligned and synced with process metrics.</p>
         </footer>
 

@@ -196,14 +196,14 @@ export default function ContributorPortal({
         };
       default:
         return {
-          primary: '#5d2a1a',
-          hover: 'hover:bg-[#fbe1d1]',
-          border: 'border-[#a3a6af]/60 focus:border-[#5d2a1a]',
-          text: 'text-[#5d2a1a]',
-          lightBg: 'bg-[#fbe1d1]',
-          headingColor: 'text-[#17191c]',
-          buttonBg: 'bg-[#17191c] text-white hover:bg-[#000000]',
-          focusRing: 'focus:ring-[#5d2a1a]/10'
+          primary: '#f73b20',
+          hover: 'hover:bg-[#fbdfd9]',
+          border: 'border-[#f8a4a4] focus:border-[#f73b20]',
+          text: 'text-[#f73b20]',
+          lightBg: 'bg-[#fbdfd9]',
+          headingColor: 'text-[#360802]',
+          buttonBg: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white hover:opacity-90',
+          focusRing: 'focus:ring-[#f73b20]/10'
         };
     }
   };
@@ -277,21 +277,21 @@ export default function ContributorPortal({
   if (!onboardProfile) {
     return (
       <div id="contributor-onboarding" className="max-w-2xl mx-auto my-8 animate-fade-in font-sans">
-        <div className="bg-white border border-[#a3a6af]/55 rounded-xl shadow-xs overflow-hidden">
+        <div className="bg-[#fffaf8] border border-[#f8a4a4] rounded-xl shadow-xs overflow-hidden">
           {/* Top visual graphic style header */}
-          <div className="p-8 bg-[#f7f7f8] text-[#17191c] relative overflow-hidden border-b border-[#a3a6af]/45">
-            <div className="absolute inset-x-0 top-0 h-px bg-[#f1c7ae]"></div>
-            <div className="absolute top-4 right-4 p-2 bg-white rounded-xl text-[#5d2a1a] border border-[#a3a6af]/45 shadow-2xs">
+          <div className="p-8 bg-[linear-gradient(135deg,#fbdfd9_0%,#fef5f3_60%,#e6f0ff_100%)] text-[#360802] relative overflow-hidden border-b border-[#f8a4a4]">
+            <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#34c771,#477ee9,#fb2d54,#f73b20)]"></div>
+            <div className="absolute top-4 right-4 p-2 bg-[#fffaf8] rounded-xl text-[#f73b20] border border-[#f8a4a4] shadow-2xs">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             
-            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#4c4c4c] bg-white border border-[#a3a6af]/45 px-2.5 py-1 rounded-xl select-none">
+            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#6c3a2f] bg-[#fffaf8] border border-[#f8a4a4] px-2.5 py-1 rounded-xl select-none">
               SAMARTH WORKSPACE ACCESS
             </span>
             <h2 className="text-3xl font-display font-normal tracking-[-0.02em] leading-none mt-3 flex items-center gap-2">
-              <User className="w-6 h-6 text-[#5d2a1a]" /> Contributor Registration & Onboarding
+              <User className="w-6 h-6 text-[#f73b20]" /> Contributor Registration & Onboarding
             </h2>
-            <p className="text-xs text-[#4c4c4c] mt-2 select-none leading-relaxed max-w-xl">
+            <p className="text-xs text-[#6c3a2f] mt-2 select-none leading-relaxed max-w-xl">
               Welcome to the Single Admin Managed Analytics Review of Thematic Handles (SAMARTH) Workspace. Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
             </p>
           </div>
@@ -307,7 +307,7 @@ export default function ContributorPortal({
                   type="text"
                   required
                   placeholder="Contributor full name"
-                  className="w-full px-3.5 py-2.5 border border-[#a3a6af]/55 rounded-lg outline-hidden bg-[#f7f7f8] focus:bg-white focus:ring-2 focus:ring-[#5d2a1a]/10 focus:border-[#5d2a1a] transition-all font-semibold text-[#17191c]"
+                  className="w-full px-3.5 py-2.5 border border-[#f8a4a4] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-[#fffaf8] focus:ring-2 focus:ring-[#f73b20]/10 focus:border-[#f73b20] transition-all font-semibold text-[#360802]"
                   value={oboName}
                   onChange={e => setOboName(e.target.value)}
                 />
@@ -321,7 +321,7 @@ export default function ContributorPortal({
                   type="text"
                   required
                   placeholder="e.g. Punjab Voice"
-                  className="w-full px-3.5 py-2.5 border border-[#a3a6af]/55 rounded-lg outline-hidden bg-[#f7f7f8] focus:bg-white focus:ring-2 focus:ring-[#5d2a1a]/10 focus:border-[#5d2a1a] transition-all font-semibold text-[#17191c]"
+                  className="w-full px-3.5 py-2.5 border border-[#f8a4a4] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-[#fffaf8] focus:ring-2 focus:ring-[#f73b20]/10 focus:border-[#f73b20] transition-all font-semibold text-[#360802]"
                   value={oboPage}
                   onChange={e => setOboPage(e.target.value)}
                 />
@@ -331,7 +331,7 @@ export default function ContributorPortal({
             {/* Social channels link setup */}
             <div className="pt-4 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-1.5 mb-1 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-                <Globe className="w-3.5 h-3.5 text-[#5d2a1a]" /> Configure Channel Profile URLs
+                <Globe className="w-3.5 h-3.5 text-[#f73b20]" /> Configure Channel Profile URLs
               </div>
               <p className="text-[11px] text-slate-400 select-none pb-1 font-medium leading-relaxed">
                 Provide live profile web links for your target channels. Leave blank to generate automatically based on page name.
@@ -345,7 +345,7 @@ export default function ContributorPortal({
                   <input
                     type="url"
                     placeholder="e.g. https://instagram.com/punjab_voice"
-                    className="w-full px-3 py-2 border border-[#a3a6af]/55 rounded-lg outline-hidden bg-[#f7f7f8] focus:bg-white focus:border-[#5d2a1a] focus:ring-1 focus:ring-[#5d2a1a]/10 font-mono text-[11px] text-[#4c4c4c]"
+                    className="w-full px-3 py-2 border border-[#f8a4a4] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-[#fffaf8] focus:border-[#f73b20] focus:ring-1 focus:ring-[#f73b20]/10 font-mono text-[11px] text-[#6c3a2f]"
                     value={oboInstagram}
                     onChange={e => setOboInstagram(e.target.value)}
                   />
@@ -358,7 +358,7 @@ export default function ContributorPortal({
                   <input
                     type="url"
                     placeholder="e.g. https://facebook.com/punjabvoice"
-                    className="w-full px-3 py-2 border border-[#a3a6af]/55 rounded-lg outline-hidden bg-[#f7f7f8] focus:bg-white focus:border-[#5d2a1a] focus:ring-1 focus:ring-[#5d2a1a]/10 font-mono text-[11px] text-[#4c4c4c]"
+                    className="w-full px-3 py-2 border border-[#f8a4a4] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-[#fffaf8] focus:border-[#f73b20] focus:ring-1 focus:ring-[#f73b20]/10 font-mono text-[11px] text-[#6c3a2f]"
                     value={oboFacebook}
                     onChange={e => setOboFacebook(e.target.value)}
                   />
@@ -371,7 +371,7 @@ export default function ContributorPortal({
                   <input
                     type="url"
                     placeholder="e.g. https://youtube.com/@punjabvoice"
-                    className="w-full px-3 py-2 border border-[#a3a6af]/55 rounded-lg outline-hidden bg-[#f7f7f8] focus:bg-white focus:border-[#5d2a1a] focus:ring-1 focus:ring-[#5d2a1a]/10 font-mono text-[11px] text-[#4c4c4c]"
+                    className="w-full px-3 py-2 border border-[#f8a4a4] rounded-lg outline-hidden bg-[#fef5f3] focus:bg-[#fffaf8] focus:border-[#f73b20] focus:ring-1 focus:ring-[#f73b20]/10 font-mono text-[11px] text-[#6c3a2f]"
                     value={oboYoutube}
                     onChange={e => setOboYoutube(e.target.value)}
                   />
@@ -386,7 +386,7 @@ export default function ContributorPortal({
               </span>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-6 py-2.5 bg-[#17191c] hover:bg-[#000000] text-white font-semibold rounded-2xl transition-all text-xs cursor-pointer select-none"
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] hover:opacity-90 text-white font-semibold rounded-2xl transition-all text-xs cursor-pointer select-none"
               >
                 Complete Onboarding <ArrowRight className="w-4 h-4" />
               </button>
@@ -427,7 +427,7 @@ export default function ContributorPortal({
             </div>
             <button
               onClick={handleResetProfile}
-              className="p-1 px-2 hover:bg-[#f7f7f8] hover:text-[#17191c] text-[#777b86] rounded transition flex items-center gap-0.5 text-[10px] font-bold cursor-pointer border border-transparent hover:border-[#a3a6af]/55"
+              className="p-1 px-2 hover:bg-[#fbdfd9] hover:text-[#360802] text-[#9b6255] rounded transition flex items-center gap-0.5 text-[10px] font-bold cursor-pointer border border-transparent hover:border-[#f8a4a4]"
               title="Reset Profile / Switch User"
             >
               <LogOut className="w-3 h-3 shrink-0" /> Exit
@@ -437,11 +437,11 @@ export default function ContributorPortal({
       </div>
 
       {successMessage && (
-        <div className="p-4 bg-white border border-[#a3a6af]/55 rounded-xl flex items-start gap-2.5 animate-fade-in">
-          <Check className="w-5 h-5 text-[#5d2a1a] shrink-0 mt-0.5" />
+        <div className="p-4 bg-[#e6f0ff] border border-[#9fc0ff] rounded-xl flex items-start gap-2.5 animate-fade-in">
+          <Check className="w-5 h-5 text-[#477ee9] shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold text-[#17191c] text-sm">Update Complete</span>
-            <p className="text-xs text-[#4c4c4c] mt-1">{successMessage}</p>
+            <span className="font-bold text-[#360802] text-sm">Update Complete</span>
+            <p className="text-xs text-[#6c3a2f] mt-1">{successMessage}</p>
           </div>
         </div>
       )}
@@ -713,9 +713,9 @@ export default function ContributorPortal({
           </div>
 
           {/* Guidelines on correct uploads */}
-          <div className="bg-[#fbe1d1] border border-[#f1c7ae] text-[#17191c] rounded-xl shadow-xs p-5 space-y-2 text-xs">
-            <span className="text-[#5d2a1a] uppercase font-bold text-[10px] tracking-wide block">Data Quality Integrity Checklist:</span>
-            <ul className="space-y-1.5 text-[#4c4c4c] list-disc pl-4 text-[11px]">
+          <div className="bg-[#fbdfd9] border border-[#f8a4a4] text-[#360802] rounded-xl shadow-xs p-5 space-y-2 text-xs">
+            <span className="text-[#f73b20] uppercase font-bold text-[10px] tracking-wide block">Data Quality Integrity Checklist:</span>
+            <ul className="space-y-1.5 text-[#6c3a2f] list-disc pl-4 text-[11px]">
               <li>Use absolute values of views and shares from platform native insights.</li>
               <li>Always attach exact channel page to retain real-time mapping consistency.</li>
               <li>Attach post proof URLs so supervisors can conduct target sample checks easily.</li>

@@ -79,15 +79,15 @@ export default function WorkspaceInsights({
         };
       default:
         return {
-          primaryText: 'text-[#5d2a1a]',
-          primaryBg: 'bg-[#17191c]',
-          primaryBorder: 'border-[#a3a6af]/60 focus:border-[#5d2a1a] focus:ring-[#5d2a1a]/10',
-          accentBorder: 'border-[#f1c7ae] hover:border-[#5d2a1a]',
-          primaryHover: 'hover:bg-[#000000]',
-          lightBg: 'bg-[#fbe1d1]',
-          textColor: 'text-[#17191c]',
-          outlineRing: 'focus:outline-[#5d2a1a]',
-          chartFill: '#5d2a1a'
+          primaryText: 'text-[#f73b20]',
+          primaryBg: 'bg-[#f73b20]',
+          primaryBorder: 'border-[#f8a4a4] focus:border-[#f73b20] focus:ring-[#f73b20]/10',
+          accentBorder: 'border-[#f8a4a4] hover:border-[#f73b20]',
+          primaryHover: 'hover:bg-[#d8321b]',
+          lightBg: 'bg-[#fbdfd9]',
+          textColor: 'text-[#360802]',
+          outlineRing: 'focus:outline-[#f73b20]',
+          chartFill: '#f73b20'
         };
     }
   };
@@ -325,10 +325,10 @@ export default function WorkspaceInsights({
     return '';
   };
   const getRankAccent = (index: number) => {
-    if (index === 0) return '#5d2a1a';
-    if (index === 1) return '#4a90e2';
-    if (index === 2) return '#777b86';
-    return '#a3a6af';
+    if (index === 0) return '#f73b20';
+    if (index === 1) return '#477ee9';
+    if (index === 2) return '#34c771';
+    return '#fb2d54';
   };
 
   return (
@@ -781,7 +781,7 @@ export default function WorkspaceInsights({
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#f7f7f8] text-[#4c4c4c]'
+                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#fef5f3] text-[#6c3a2f]'
                         }`}>
                           {i + 1}
                         </div>
@@ -840,27 +840,27 @@ export default function WorkspaceInsights({
             <button
               type="button"
               onClick={() => setSelectedContributor(leaderboardLeader.name)}
-              className="mb-5 w-full rounded-lg border border-[#f1c7ae] bg-[#fbe1d1] p-4 text-left transition hover:bg-[#f8d6c3]"
+              className="mb-5 w-full rounded-lg border border-[#f8a4a4] bg-[linear-gradient(135deg,#fbdfd9_0%,#fef5f3_55%,#e6f0ff_100%)] p-4 text-left transition hover:brightness-[0.99]"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-12 w-12 rounded-full bg-[#17191c] text-white flex items-center justify-center shrink-0">
-                    <Trophy className="w-6 h-6 text-[#fbe1d1]" />
+                  <div className="h-12 w-12 rounded-full bg-[#f73b20] text-white flex items-center justify-center shrink-0">
+                    <Trophy className="w-6 h-6 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#5d2a1a]">Current Rank 1 Winner</div>
-                    <div className="mt-1 text-2xl font-display font-normal leading-none tracking-[-0.02em] text-[#17191c] truncate">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f73b20]">Current Rank 1 Winner</div>
+                    <div className="mt-1 text-2xl font-display font-semibold leading-none text-[#360802] truncate">
                       {leaderboardLeader.name}
                     </div>
-                    <div className="mt-1 text-[11px] text-[#4c4c4c]">
+                    <div className="mt-1 text-[11px] text-[#6c3a2f]">
                       Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts and {platformLabels[leaderboardLeader.topPlatform]} focus.
                     </div>
                   </div>
                 </div>
                 <div className="text-right lg:min-w-44">
-                  <div className="rounded-lg bg-white border border-[#f1c7ae] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#777b86]">Winning Score</div>
-                    <div className="mt-1 text-xl font-display tracking-[-0.02em] text-[#17191c]">{formatContributorMetric(leaderScore)}</div>
+                  <div className="rounded-lg bg-[#fffaf8] border border-[#f8a4a4] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#9b6255]">Winning Score</div>
+                    <div className="mt-1 text-xl font-display font-semibold text-[#360802]">{formatContributorMetric(leaderScore)}</div>
                   </div>
                 </div>
               </div>
@@ -887,7 +887,7 @@ export default function WorkspaceInsights({
                     onBlur={() => setHoveredContributor(null)}
                     className={`w-full rounded-lg border px-3 py-3 text-left transition relative overflow-hidden ${
                       index === 0
-                        ? 'border-[#f1c7ae] bg-white hover:bg-[#fbe1d1]'
+                        ? 'border-[#f8a4a4] bg-[#fffaf8] hover:bg-[#fbdfd9]'
                         : isActive || isHovered
                           ? `${theme.accentBorder} ${theme.lightBg}`
                           : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
@@ -904,7 +904,7 @@ export default function WorkspaceInsights({
                           style={{
                             borderColor: rankAccent,
                             color: index === 0 ? '#ffffff' : rankAccent,
-                            backgroundColor: index === 0 ? '#17191c' : '#ffffff'
+                            backgroundColor: index === 0 ? '#f73b20' : '#fffaf8'
                           }}
                         >
                           #{index + 1}
@@ -961,7 +961,7 @@ export default function WorkspaceInsights({
           )}
         </div>
 
-        <div className="xl:col-span-2 p-5 bg-[#d3e3fc] border border-[#b8cef2] rounded-xl shadow-xs">
+        <div className="xl:col-span-2 p-5 bg-[#e6f0ff] border border-[#9fc0ff] rounded-xl shadow-xs">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Metric Comparison</h3>
             <p className="text-xs text-slate-400 mt-1">Side-by-side bars for views, likes, comments, and shares.</p>
@@ -989,8 +989,8 @@ export default function WorkspaceInsights({
               const metrics = [
                 { label: 'Views', value: author.views, max: maxContributorViews, color: theme.chartFill },
                 { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#4a90e2' },
-                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#777b86' },
-                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#a3a6af' }
+                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#34c771' },
+                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#fb2d54' }
               ];
 
               return (
