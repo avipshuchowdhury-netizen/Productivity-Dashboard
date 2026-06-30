@@ -317,6 +317,23 @@ export default function WorkspaceInsights({
   const currentMetricKey = selectedMetric;
   const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
   const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
+  const leaderboardLeader = rankedAuthorStats[0] || null;
+  const leaderboardRunnerUp = rankedAuthorStats[1] || null;
+  const leaderScore = leaderboardLeader ? getContributorMetricValue(leaderboardLeader) : 0;
+  const runnerUpScore = leaderboardRunnerUp ? getContributorMetricValue(leaderboardRunnerUp) : 0;
+  const leaderMargin = Math.max(leaderScore - runnerUpScore, 0);
+  const getRankLabel = (index: number) => {
+    if (index === 0) return 'Champion';
+    if (index === 1) return 'Runner-up';
+    if (index === 2) return 'Podium';
+    return 'Contender';
+  };
+  const getRankAccent = (index: number) => {
+    if (index === 0) return '#ff682c';
+    if (index === 1) return '#816729';
+    if (index === 2) return '#4d4d4d';
+    return '#828282';
+  };
 
   return (
     <div id="workspace-insights" className="space-y-6">
@@ -803,8 +820,8 @@ export default function WorkspaceInsights({
         <div className="xl:col-span-3 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor-wise Performance</h3>
-              <p className="text-xs text-slate-400">Ranking by uploaded contributor output in the current workspace context.</p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Championship Leaderboard</h3>
+              <p className="text-xs text-slate-400">A live race table based on the selected competition metric and current filters.</p>
             </div>
             <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
               {(['performance', 'posts', 'views', 'likes', 'comments', 'shares'] as const).map(metric => (
@@ -823,6 +840,43 @@ export default function WorkspaceInsights({
             </div>
           </div>
 
+          {leaderboardLeader && (
+            <button
+              type="button"
+              onClick={() => setSelectedContributor(leaderboardLeader.name)}
+              className="mb-5 w-full rounded-lg border border-[#ff682c] bg-[#f5f5f5] p-4 text-left transition hover:bg-white"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-12 w-12 rounded-full bg-[#202020] text-white flex items-center justify-center shrink-0">
+                    <Trophy className="w-6 h-6 text-[#ff682c]" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#ff682c]">Current Rank 1 Winner</div>
+                    <div className="mt-1 text-2xl font-display font-normal leading-none tracking-[-0.02em] text-[#202020] truncate">
+                      {leaderboardLeader.name}
+                    </div>
+                    <div className="mt-1 text-[11px] text-[#4d4d4d]">
+                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts and {platformLabels[leaderboardLeader.topPlatform]} focus.
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-right lg:min-w-64">
+                  <div className="rounded-lg bg-white border border-[#e8e8e8] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#828282]">Winning Score</div>
+                    <div className="mt-1 text-xl font-display tracking-[-0.02em] text-[#202020]">{formatContributorMetric(leaderScore)}</div>
+                  </div>
+                  <div className="rounded-lg bg-white border border-[#e8e8e8] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#828282]">Lead Margin</div>
+                    <div className="mt-1 text-xl font-display tracking-[-0.02em] text-[#202020]">
+                      {leaderboardRunnerUp ? formatContributorMetric(leaderMargin) : 'Clear'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </button>
+          )}
+
           {rankedAuthorStats.length > 0 ? (
             <div className="space-y-3">
               {rankedAuthorStats.map((author, index) => {
@@ -830,6 +884,8 @@ export default function WorkspaceInsights({
                 const barWidth = metricValue > 0 ? Math.max(6, (metricValue / maxContributorMetric) * 100) : 0;
                 const isActive = contributorFilterValue === author.name;
                 const isHovered = hoveredContributor === author.name;
+                const rankAccent = getRankAccent(index);
+                const gapFromLeader = index === 0 ? 0 : Math.max(leaderScore - metricValue, 0);
 
                 return (
                   <button
@@ -839,21 +895,40 @@ export default function WorkspaceInsights({
                     onMouseLeave={() => setHoveredContributor(null)}
                     onFocus={() => setHoveredContributor(author.name)}
                     onBlur={() => setHoveredContributor(null)}
-                    className={`w-full rounded-lg border px-3 py-3 text-left transition ${
-                      isActive || isHovered
-                        ? `${theme.accentBorder} ${theme.lightBg}`
-                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                    className={`w-full rounded-lg border px-3 py-3 text-left transition relative overflow-hidden ${
+                      index === 0
+                        ? 'border-[#ff682c] bg-white hover:bg-[#f5f5f5]'
+                        : isActive || isHovered
+                          ? `${theme.accentBorder} ${theme.lightBg}`
+                          : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
                     }`}
                   >
+                    <span
+                      className="absolute inset-y-0 left-0 w-1"
+                      style={{ backgroundColor: rankAccent }}
+                    />
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center text-xs font-extrabold ${
-                          isActive ? `${theme.primaryBg} text-white` : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {index + 1}
+                        <div
+                          className="w-10 h-10 rounded-full flex shrink-0 items-center justify-center text-xs font-extrabold border"
+                          style={{
+                            borderColor: rankAccent,
+                            color: index === 0 ? '#ffffff' : rankAccent,
+                            backgroundColor: index === 0 ? '#202020' : '#ffffff'
+                          }}
+                        >
+                          #{index + 1}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-sm text-slate-800 truncate">{author.name}</div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="font-bold text-sm text-slate-800 truncate">{author.name}</div>
+                            <span
+                              className="rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                              style={{ borderColor: rankAccent, color: rankAccent }}
+                            >
+                              {getRankLabel(index)}
+                            </span>
+                          </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
                             {author.count} posts · {platformLabels[author.topPlatform]}
                           </div>
@@ -872,16 +947,17 @@ export default function WorkspaceInsights({
                     <div className="mt-3 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${barWidth}%`, backgroundColor: theme.chartFill }}
+                        style={{ width: `${barWidth}%`, backgroundColor: rankAccent }}
                       />
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-6 gap-x-3 gap-y-1 text-[10px] text-slate-500">
                       <span><strong className="text-slate-700">{author.count}</strong> posts</span>
                       <span><strong className="text-slate-700">{formatCompact(author.views)}</strong> views</span>
                       <span><strong className="text-slate-700">{formatCompact(author.likes)}</strong> likes</span>
                       <span><strong className="text-slate-700">{formatCompact(author.comments)}</strong> comments</span>
                       <span><strong className="text-slate-700">{formatCompact(author.shares)}</strong> shares</span>
+                      <span><strong className="text-slate-700">{index === 0 ? 'Leader' : formatContributorMetric(gapFromLeader)}</strong> gap</span>
                     </div>
                   </button>
                 );
@@ -921,9 +997,9 @@ export default function WorkspaceInsights({
               const isHovered = hoveredMetricContributor === author.name;
               const metrics = [
                 { label: 'Views', value: author.views, max: maxContributorViews, color: theme.chartFill },
-                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#16a34a' },
-                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#0284c7' },
-                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#7c3aed' }
+                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#816729' },
+                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#4d4d4d' },
+                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#828282' }
               ];
 
               return (
