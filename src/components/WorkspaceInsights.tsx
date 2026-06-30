@@ -43,51 +43,51 @@ export default function WorkspaceInsights({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primaryText: 'text-[#477ee9]',
-          primaryBg: 'bg-[#477ee9]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#477ee9] focus:ring-[#477ee9]/15',
-          accentBorder: 'border-[#edf3ff] hover:border-[#477ee9]',
-          primaryHover: 'hover:bg-[#376bd0]',
-          lightBg: 'bg-[#edf3ff]',
-          textColor: 'text-[#477ee9]',
-          outlineRing: 'focus:outline-[#477ee9]',
-          chartFill: '#477ee9'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          textColor: 'text-[#202020]',
+          outlineRing: 'focus:outline-[#202020]',
+          chartFill: '#ff682c'
         };
       case 'instagram':
         return {
-          primaryText: 'text-[#fb2d54]',
-          primaryBg: 'bg-[#fb2d54]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#fb2d54] focus:ring-[#fb2d54]/15',
-          accentBorder: 'border-[#fff0f3] hover:border-[#fb2d54]',
-          primaryHover: 'hover:bg-[#e52349]',
-          lightBg: 'bg-[#fff0f3]',
-          textColor: 'text-[#fb2d54]',
-          outlineRing: 'focus:outline-[#fb2d54]',
-          chartFill: '#fb2d54'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          textColor: 'text-[#202020]',
+          outlineRing: 'focus:outline-[#202020]',
+          chartFill: '#ff682c'
         };
       case 'youtube':
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
-          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#dd2f17]',
-          lightBg: 'bg-[#fef5f3]',
-          textColor: 'text-[#f73b20]',
-          outlineRing: 'focus:outline-[#f73b20]',
-          chartFill: '#f73b20'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          textColor: 'text-[#202020]',
+          outlineRing: 'focus:outline-[#202020]',
+          chartFill: '#ff682c'
         };
       default:
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
-          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#dd2f17]',
-          lightBg: 'bg-[#fef5f3]',
-          textColor: 'text-[#f73b20]',
-          outlineRing: 'focus:outline-[#f73b20]',
-          chartFill: '#f73b20'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          textColor: 'text-[#202020]',
+          outlineRing: 'focus:outline-[#202020]',
+          chartFill: '#ff682c'
         };
     }
   };
@@ -713,12 +713,12 @@ export default function WorkspaceInsights({
               {/* YouTube */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-[#f73b20]" /> YouTube Views</span>
+                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-[#ff682c]" /> YouTube Views</span>
                   <span>{ytViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#f73b20] h-full rounded-full transition-all duration-500"
+                    className="bg-[#ff682c] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (ytViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -727,12 +727,12 @@ export default function WorkspaceInsights({
               {/* Instagram */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-[#fb2d54]" /> Instagram Reels</span>
+                  <span className="flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-[#816729]" /> Instagram Reels</span>
                   <span>{igViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#fb2d54] h-full rounded-full transition-all duration-500"
+                    className="bg-[#816729] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (igViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -741,12 +741,12 @@ export default function WorkspaceInsights({
               {/* Facebook */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><ThumbsUp className="w-3.5 h-3.5 text-[#477ee9]" /> Facebook Feed</span>
+                  <span className="flex items-center gap-1.5"><ThumbsUp className="w-3.5 h-3.5 text-[#4d4d4d]" /> Facebook Feed</span>
                   <span>{fbViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#477ee9] h-full rounded-full transition-all duration-500"
+                    className="bg-[#4d4d4d] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (fbViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -768,7 +768,7 @@ export default function WorkspaceInsights({
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#fef5f3] text-[#f73b20]'
+                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#f5f5f5] text-[#4d4d4d]'
                         }`}>
                           {i + 1}
                         </div>

@@ -99,47 +99,47 @@ export default function App() {
     switch (activePlatform) {
       case 'facebook':
         return {
-          headerText: 'text-[#477ee9]',
-          sideText: 'text-[#477ee9]',
-          logoBg: 'bg-white border-2 border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]',
-          logoText: 'text-[#360802]',
-          btnBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
-          accentText: 'text-[#477ee9]',
-          accentBg: 'bg-white text-[#477ee9] border border-[#477ee9]/30',
-          sideActive: 'bg-white text-[#360802] border border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]'
+          headerText: 'text-[#ff682c]',
+          sideText: 'text-[#ff682c]',
+          logoBg: 'bg-white border border-[#828282]',
+          logoText: 'text-[#202020]',
+          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          accentText: 'text-[#ff682c]',
+          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
+          sideActive: 'bg-[#202020] text-white'
         };
       case 'instagram':
         return {
-          headerText: 'text-[#fb2d54]',
-          sideText: 'text-[#fb2d54]',
-          logoBg: 'bg-white border-2 border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]',
-          logoText: 'text-[#360802]',
-          btnBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
-          accentText: 'text-[#fb2d54]',
-          accentBg: 'bg-white text-[#fb2d54] border border-[#fb2d54]/30',
-          sideActive: 'bg-white text-[#360802] border border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]'
+          headerText: 'text-[#ff682c]',
+          sideText: 'text-[#ff682c]',
+          logoBg: 'bg-white border border-[#828282]',
+          logoText: 'text-[#202020]',
+          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          accentText: 'text-[#ff682c]',
+          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
+          sideActive: 'bg-[#202020] text-white'
         };
       case 'youtube':
         return {
-          headerText: 'text-[#f73b20]',
-          sideText: 'text-[#f73b20]',
-          logoBg: 'bg-white border-2 border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]',
-          logoText: 'text-[#360802]',
-          btnBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
-          accentText: 'text-[#f73b20]',
-          accentBg: 'bg-white text-[#f73b20] border border-[#f73b20]/30',
-          sideActive: 'bg-white text-[#360802] border border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]'
+          headerText: 'text-[#ff682c]',
+          sideText: 'text-[#ff682c]',
+          logoBg: 'bg-white border border-[#828282]',
+          logoText: 'text-[#202020]',
+          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          accentText: 'text-[#ff682c]',
+          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
+          sideActive: 'bg-[#202020] text-white'
         };
       default:
         return {
-          headerText: 'text-[#f73b20]',
-          sideText: 'text-[#f73b20]',
-          logoBg: 'bg-white border-2 border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]',
-          logoText: 'text-[#360802]',
-          btnBg: 'bg-white text-[#f73b20] border border-[#f73b20] hover:bg-[#fef5f3]',
-          accentText: 'text-[#f73b20]',
-          accentBg: 'bg-white text-[#f73b20] border border-[#f73b20]/30',
-          sideActive: 'bg-white text-[#360802] border border-[#f73b20] shadow-[0_8px_24px_rgba(247,59,32,0.10)]'
+          headerText: 'text-[#ff682c]',
+          sideText: 'text-[#ff682c]',
+          logoBg: 'bg-white border border-[#828282]',
+          logoText: 'text-[#202020]',
+          btnBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          accentText: 'text-[#ff682c]',
+          accentBg: 'bg-[#f5f5f5] text-[#202020] border border-[#e8e8e8]',
+          sideActive: 'bg-[#202020] text-white'
         };
     }
   };
@@ -281,9 +281,9 @@ export default function App() {
 
   // Navigation tab styling helpers
   const tabs = [
-    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#477ee9] text-white', idleTile: 'bg-[#edf3ff] text-[#477ee9]' },
-    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#34c771] text-white', idleTile: 'bg-[#eaf9f0] text-[#34c771]' },
-    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#fb2d54] text-white', idleTile: 'bg-[#fff0f3] text-[#fb2d54]' },
+    { id: 'insights', label: 'Workspace Insights', icon: BarChart2, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
+    { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
+    { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#202020] text-white', idleTile: 'bg-[#f5f5f5] text-[#828282]' },
   ] as const;
   const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
     insights: 'Insights',
@@ -292,14 +292,14 @@ export default function App() {
   };
 
   return (
-    <div id="full-app-root" className="min-h-screen flex font-sans text-[#360802] overflow-x-hidden">
+    <div id="full-app-root" className="min-h-screen flex font-sans text-[#202020] overflow-x-hidden">
       
       {/* Left Navigation Rail (SAMARTH Theme) */}
-      <aside id="left-sidebar-rail" className="w-28 bg-white/95 hidden md:flex flex-col items-center py-6 gap-6 shrink-0 border-r border-[#fbdfd9] shadow-[8px_0_24px_rgba(247,59,32,0.08)] select-none">
+      <aside id="left-sidebar-rail" className="hidden">
         {/* Sidebar Logo branded as SAMARTH with dynamic platform color matching */}
         <div className={`w-18 h-18 rounded-xl flex flex-col items-center justify-center font-bold text-xs select-none text-center px-1 font-display transition-all duration-300 ${appTheme.logoBg}`}>
           <span className={`font-extrabold uppercase tracking-[0.03em] text-[11px] ${appTheme.logoText}`}>SAMARTH</span>
-          <span className="text-[7px] text-[#f73b20] uppercase tracking-widest leading-none mt-0.5 font-bold">WORKSPACE</span>
+          <span className="text-[7px] text-[#ff682c] uppercase tracking-widest leading-none mt-0.5 font-bold">WORKSPACE</span>
         </div>
 
         {/* Sidebar Nav Buttons */}
@@ -317,7 +317,7 @@ export default function App() {
                 className={`w-full py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center relative group cursor-pointer ${
                   isSelected
                     ? appTheme.sideActive
-                    : 'text-[#6b4a45] border border-transparent hover:border-[#fbdfd9] hover:bg-[#fef5f3]'
+                    : 'text-[#4d4d4d] border border-transparent hover:border-[#e8e8e8] hover:bg-[#f5f5f5]'
                 }`}
                 title={tab.label}
               >
@@ -333,14 +333,14 @@ export default function App() {
         </nav>
 
         {/* Dynamic counter widget inside sidebar */}
-        <div className="w-18 px-1 py-2 bg-[#fef5f3] rounded-xl text-center border border-[#fbdfd9] mb-2 hidden lg:block">
+        <div className="w-18 px-1 py-2 bg-[#f5f5f5] rounded-xl text-center border border-[#e8e8e8] mb-2 hidden lg:block">
           <p className="text-[7px] text-[#6b4a45] font-bold uppercase tracking-wider">Metrics</p>
           <span className={`text-xs font-bold font-mono transition-colors duration-350 ${appTheme.sideText}`}>{data.auditItems.length}</span>
         </div>
 
         {/* Avatar block */}
-        <div className="mt-2 pt-4 border-t border-[#fbdfd9] w-full flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full bg-white border-2 border-[#f73b20] text-[#f73b20] flex items-center justify-center font-bold text-xs select-none">
+        <div className="mt-2 pt-4 border-t border-[#e8e8e8] w-full flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full bg-white border-2 border-[#ff682c] text-[#ff682c] flex items-center justify-center font-bold text-xs select-none">
             S
           </div>
         </div>
@@ -350,20 +350,44 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header */}
-        <header className="h-16 shrink-0 bg-white/90 backdrop-blur border-b border-[#fbdfd9] flex items-center justify-between px-4 md:px-8 select-none sticky top-0 z-50">
+        <header className="shrink-0 bg-[#efefef] flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50">
+          <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`p-1.5 rounded-lg md:hidden ${appTheme.accentBg}`}>
               <Target className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
-              <h1 className="text-sm md:text-lg font-bold tracking-[0.03em] font-display text-[#360802] uppercase">
+              <h1 className="text-xl md:text-3xl font-normal tracking-[-0.02em] leading-none font-display text-[#202020]">
                 {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
               </h1>
-              <span className={`text-[9px] md:text-[10px] font-bold tracking-wide hidden sm:inline md:ml-1 uppercase font-mono ${appTheme.headerText}`}>
+              <span className={`text-[9px] md:text-[10px] font-semibold tracking-normal hidden sm:inline md:ml-1 uppercase font-mono ${appTheme.headerText}`}>
                 SAMARTH (Single Admin Managed Analytics Review of Thematic Handles)
               </span>
             </div>
           </div>
+
+          <nav className="hidden md:flex items-center justify-center bg-white border border-[#828282] rounded-[200px] p-1.5 gap-1">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setErrorMessage('');
+                  }}
+                  className={`flex items-center gap-2 rounded-[200px] px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                    isSelected ? appTheme.sideActive : 'text-[#4d4d4d] hover:bg-[#f5f5f5]'
+                  }`}
+                  title={tab.label}
+                >
+                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#828282]'}`} />
+                  <span>{shortTabLabels[tab.id]}</span>
+                </button>
+              );
+            })}
+          </nav>
 
           <div className="flex gap-4 md:gap-5 items-center">
             {/* Dynamic score statistic */}
@@ -371,7 +395,7 @@ export default function App() {
               <p className="text-[9px] uppercase text-[#6b4a45] font-extrabold tracking-widest">Entries</p>
               <p className={`text-sm font-bold ${appTheme.headerText}`}>{data.auditItems.length}</p>
             </div>
-            <div className="h-8 w-[1px] bg-[#fbdfd9] hidden md:block"></div>
+            <div className="h-8 w-[1px] bg-[#e8e8e8] hidden md:block"></div>
 
             {/* Sync trigger button */}
             <button 
@@ -383,10 +407,11 @@ export default function App() {
               <span className="hidden xs:inline">{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
             </button>
           </div>
+          </div>
         </header>
 
         {/* Mobile Horizontal Navigation Tabs */}
-        <div className="md:hidden flex overflow-x-auto whitespace-nowrap bg-white/95 border-b border-[#fbdfd9] p-1.5 gap-1.5 select-none sticky top-16 z-40 shadow-xs">
+        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-white border border-[#828282] rounded-[200px] p-1.5 gap-1.5 select-none z-40">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -397,15 +422,13 @@ export default function App() {
                   setActiveTab(tab.id);
                   setErrorMessage('');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold select-none transition-colors cursor-pointer border ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[200px] text-xs font-semibold select-none transition-colors cursor-pointer ${
                   isSelected 
                     ? appTheme.btnBg
-                    : 'border-transparent text-[#6b4a45] hover:border-[#fbdfd9] hover:bg-[#fef5f3]'
+                    : 'text-[#4d4d4d] hover:bg-[#f5f5f5]'
                 }`}
               >
-                <span className={`w-7 h-7 rounded-xl flex items-center justify-center ${isSelected ? tab.iconTile : tab.idleTile}`}>
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                </span>
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#828282]'}`} />
                 <span>{shortTabLabels[tab.id]}</span>
               </button>
             );
@@ -473,7 +496,7 @@ export default function App() {
         </main>
 
         {/* Professional Humble Footer */}
-        <footer id="workspace-footer" className="bg-white/90 border-t border-[#fbdfd9] py-4 text-center text-[11px] text-[#6b4a45] select-none">
+        <footer id="workspace-footer" className="bg-[#efefef] border-t border-[#e8e8e8] py-4 text-center text-[11px] text-[#828282] select-none">
           <p>© 2026 SAMARTH Social Media Team Workspace. All audits aligned and synced with process metrics.</p>
         </footer>
 

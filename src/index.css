@@ -1,57 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {
   :root {
-    --color-coral-flame: #f73b20;
-    --color-brandwood: #360802;
-    --color-sunset-fade: #fef5f3;
-    --color-blush-mist: #fbdfd9;
-    --color-mint-action: #34c771;
-    --color-cobalt-pulse: #477ee9;
-    --color-magenta-spark: #fb2d54;
-    --shadow-coral-float: rgba(247, 59, 32, 0.1) 0 8px 24px 0, rgba(247, 59, 32, 0.05) 0 2px 8px 0;
-    --shadow-warm-card: rgba(0, 0, 0, 0.05) 0 -4px 16px 0;
+    --color-signal-orange: #ff682c;
+    --color-sienna-bronze: #816729;
+    --color-carbon: #202020;
+    --color-graphite: #4d4d4d;
+    --color-slate: #828282;
+    --color-fog: #f5f5f5;
+    --color-mist: #efefef;
+    --color-chalk: #e8e8e8;
+    --color-paper: #ffffff;
+    --shadow-dashboard-card: 0 1px 3px rgba(32, 32, 32, 0.04), 0 4px 12px rgba(32, 32, 32, 0.03);
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #ffffff;
-    color: var(--color-brandwood);
-    letter-spacing: 0.01em;
+    background-color: var(--color-mist);
+    color: var(--color-carbon);
+    letter-spacing: 0;
   }
 }
 
 #full-app-root {
-  background:
-    radial-gradient(circle at 14% 0%, rgba(251, 223, 217, 0.9) 0, rgba(254, 245, 243, 0.92) 245px, rgba(255, 255, 255, 0) 560px),
-    linear-gradient(180deg, #ffffff 0%, #fef5f3 100%);
+  background: var(--color-mist);
 }
 
 #full-app-root .rounded-xl {
-  border-radius: 16px;
+  border-radius: 8px;
+}
+
+#full-app-root .rounded-lg {
+  border-radius: 8px;
+}
+
+#full-app-root .rounded-2xl,
+#full-app-root button.rounded-2xl {
+  border-radius: 20px;
 }
 
 #full-app-root .shadow-xs,
 #full-app-root .shadow-2xs {
-  box-shadow: var(--shadow-warm-card);
+  box-shadow: var(--shadow-dashboard-card);
+}
+
+#full-app-root .shadow-lg,
+#full-app-root .shadow-xl {
+  box-shadow: var(--shadow-dashboard-card);
 }
 
 #full-app-root input,
 #full-app-root select,
 #full-app-root textarea {
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 ::selection {
-  background: rgba(247, 59, 32, 0.18);
-  color: var(--color-brandwood);
+  background: rgba(255, 104, 44, 0.18);
+  color: var(--color-carbon);
 }
 
 /* Custom scrollbar styles */
@@ -60,12 +73,12 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #fef5f3;
+  background: #efefef;
 }
 ::-webkit-scrollbar-thumb {
-  background: #fbdfd9;
+  background: #cfcfcf;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f73b20;
+  background: #828282;
 }

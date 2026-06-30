@@ -40,43 +40,43 @@ export default function EntryManagementArchive({
     switch (activePlatform) {
       case 'facebook':
         return {
-          primaryText: 'text-[#477ee9]',
-          primaryBg: 'bg-[#477ee9]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#477ee9] focus:ring-[#477ee9]/15',
-          accentBorder: 'border-[#edf3ff] hover:border-[#477ee9]',
-          primaryHover: 'hover:bg-[#376bd0]',
-          lightBg: 'bg-[#edf3ff]',
-          outlineRing: 'focus:outline-[#477ee9]'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
         };
       case 'instagram':
         return {
-          primaryText: 'text-[#fb2d54]',
-          primaryBg: 'bg-[#fb2d54]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#fb2d54] focus:ring-[#fb2d54]/15',
-          accentBorder: 'border-[#fff0f3] hover:border-[#fb2d54]',
-          primaryHover: 'hover:bg-[#e52349]',
-          lightBg: 'bg-[#fff0f3]',
-          outlineRing: 'focus:outline-[#fb2d54]'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
         };
       case 'youtube':
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
-          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#dd2f17]',
-          lightBg: 'bg-[#fef5f3]',
-          outlineRing: 'focus:outline-[#f73b20]'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
         };
       default:
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#fbdfd9] focus:border-[#f73b20] focus:ring-[#f73b20]/15',
-          accentBorder: 'border-[#fef5f3] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#dd2f17]',
-          lightBg: 'bg-[#fef5f3]',
-          outlineRing: 'focus:outline-[#f73b20]'
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
         };
     }
   };
@@ -557,7 +557,7 @@ export default function EntryManagementArchive({
                     <span className="text-[10px] uppercase font-bold text-slate-400">{item.format}</span>
                     <span className="text-[10px] font-mono text-slate-400">{item.publishedAt}</span>
                     {item.archivedAt && (
-                      <span className="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                      <span className="text-[10px] uppercase font-bold text-[#816729] bg-[#f5f5f5] px-2 py-0.5 rounded">
                         Archived {formatArchiveDate(item.archivedAt)}
                       </span>
                     )}
@@ -567,7 +567,7 @@ export default function EntryManagementArchive({
                     <span>{item.author || 'Unknown Contributor'}</span>
                     <span>{item.page || 'No page'}</span>
                     <span>{item.state || 'No state'}</span>
-                    <span className={item.theme === 'negative' ? 'text-red-600 font-semibold' : 'text-emerald-600 font-semibold'}>
+                    <span className={item.theme === 'negative' ? 'text-[#816729] font-semibold' : 'text-[#4d4d4d] font-semibold'}>
                       {item.theme === 'negative' ? 'Negative' : 'Positive'}
                     </span>
                   </div>
@@ -597,7 +597,7 @@ export default function EntryManagementArchive({
                         type="button"
                         disabled={archivingEntryId === item.id}
                         onClick={() => handleArchiveEntry(item)}
-                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#202020] hover:bg-[#f5f5f5] transition disabled:opacity-50 disabled:cursor-not-allowed"
                         title={`Archive ${item.title}`}
                       >
                         <Archive className="w-4 h-4" />
@@ -608,7 +608,7 @@ export default function EntryManagementArchive({
                       type="button"
                       disabled={restoringEntryId === item.id}
                       onClick={() => handleRestoreEntry(item)}
-                      className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-[#202020] hover:bg-[#f5f5f5] transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title={`Restore ${item.title}`}
                     >
                       <RotateCcw className="w-4 h-4" />
