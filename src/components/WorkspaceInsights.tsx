@@ -40,56 +40,17 @@ export default function WorkspaceInsights({
   
   // Theme Helper classes
   const getThemeClasses = () => {
-    switch (activePlatform) {
-      case 'facebook':
-        return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
-        };
-      case 'instagram':
-        return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
-        };
-      case 'youtube':
-        return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
-        };
-      default:
-        return {
-          primaryText: 'text-[#202020]',
-          primaryBg: 'bg-[#202020]',
-          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
-          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
-          primaryHover: 'hover:bg-[#4d4d4d]',
-          lightBg: 'bg-[#f5f5f5]',
-          textColor: 'text-[#202020]',
-          outlineRing: 'focus:outline-[#202020]',
-          chartFill: '#ff682c'
-        };
-    }
+    return {
+      primaryText: 'text-white',
+      primaryBg: 'bg-[#2c2b52]',
+      primaryBorder: 'border-[#292a4d] focus:border-[#665eff] focus:ring-[#665eff]/20',
+      accentBorder: 'border-[#292a4d] hover:border-[#665eff]',
+      primaryHover: 'hover:bg-[#2c2b52]',
+      lightBg: 'bg-[#13151f]',
+      textColor: 'text-white',
+      outlineRing: 'focus:outline-[#665eff]',
+      chartFill: '#0067ff'
+    };
   };
 
   const theme = getThemeClasses();
@@ -318,21 +279,16 @@ export default function WorkspaceInsights({
   const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
   const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
   const leaderboardLeader = rankedAuthorStats[0] || null;
-  const leaderboardRunnerUp = rankedAuthorStats[1] || null;
   const leaderScore = leaderboardLeader ? getContributorMetricValue(leaderboardLeader) : 0;
-  const runnerUpScore = leaderboardRunnerUp ? getContributorMetricValue(leaderboardRunnerUp) : 0;
-  const leaderMargin = Math.max(leaderScore - runnerUpScore, 0);
   const getRankLabel = (index: number) => {
     if (index === 0) return 'Champion';
     if (index === 1) return 'Runner-up';
-    if (index === 2) return 'Podium';
-    return 'Contender';
+    return '';
   };
   const getRankAccent = (index: number) => {
-    if (index === 0) return '#ff682c';
-    if (index === 1) return '#816729';
-    if (index === 2) return '#4d4d4d';
-    return '#828282';
+    if (index === 0) return '#ff3a63';
+    if (index === 1) return '#665eff';
+    return '#292a4d';
   };
 
   return (
@@ -730,12 +686,12 @@ export default function WorkspaceInsights({
               {/* YouTube */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-[#ff682c]" /> YouTube Views</span>
+                  <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5 text-[#0067ff]" /> YouTube Views</span>
                   <span>{ytViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#ff682c] h-full rounded-full transition-all duration-500"
+                    className="bg-[#0067ff] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (ytViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -744,12 +700,12 @@ export default function WorkspaceInsights({
               {/* Instagram */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-[#816729]" /> Instagram Reels</span>
+                  <span className="flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 text-[#665eff]" /> Instagram Reels</span>
                   <span>{igViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#816729] h-full rounded-full transition-all duration-500"
+                    className="bg-[#665eff] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (igViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -758,12 +714,12 @@ export default function WorkspaceInsights({
               {/* Facebook */}
               <div>
                 <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-                  <span className="flex items-center gap-1.5"><ThumbsUp className="w-3.5 h-3.5 text-[#4d4d4d]" /> Facebook Feed</span>
+                  <span className="flex items-center gap-1.5"><ThumbsUp className="w-3.5 h-3.5 text-[#ffff00]" /> Facebook Feed</span>
                   <span>{fbViews.toLocaleString()} views</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#4d4d4d] h-full rounded-full transition-all duration-500"
+                    className="bg-[#ffff00] h-full rounded-full transition-all duration-500"
                     style={{ width: `${totalChannelViews > 0 ? Math.max(5, (fbViews / totalChannelViews) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -785,7 +741,7 @@ export default function WorkspaceInsights({
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#f5f5f5] text-[#4d4d4d]'
+                          contributorFilterValue === author.name ? `${theme.primaryBg} text-white` : 'bg-[#13151f] text-[#9b9ba4]'
                         }`}>
                           {i + 1}
                         </div>
@@ -844,33 +800,27 @@ export default function WorkspaceInsights({
             <button
               type="button"
               onClick={() => setSelectedContributor(leaderboardLeader.name)}
-              className="mb-5 w-full rounded-lg border border-[#ff682c] bg-[#f5f5f5] p-4 text-left transition hover:bg-white"
+              className="mb-5 w-full rounded-lg border border-[#ff3a63] bg-[#13151f] p-4 text-left transition hover:bg-[#2c2b52]"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-12 w-12 rounded-full bg-[#202020] text-white flex items-center justify-center shrink-0">
-                    <Trophy className="w-6 h-6 text-[#ff682c]" />
+                  <div className="h-12 w-12 rounded-full bg-[#0c0a2b] text-white flex items-center justify-center shrink-0 border border-[#ff3a63]">
+                    <Trophy className="w-6 h-6 text-[#ff3a63]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#ff682c]">Current Rank 1 Winner</div>
-                    <div className="mt-1 text-2xl font-display font-normal leading-none tracking-[-0.02em] text-[#202020] truncate">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#ff3a63]">Current Rank 1 Winner</div>
+                    <div className="mt-1 text-2xl font-display font-normal leading-none text-white truncate">
                       {leaderboardLeader.name}
                     </div>
-                    <div className="mt-1 text-[11px] text-[#4d4d4d]">
+                    <div className="mt-1 text-[11px] text-[#b4b4bb]">
                       Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts and {platformLabels[leaderboardLeader.topPlatform]} focus.
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-right lg:min-w-64">
-                  <div className="rounded-lg bg-white border border-[#e8e8e8] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#828282]">Winning Score</div>
-                    <div className="mt-1 text-xl font-display tracking-[-0.02em] text-[#202020]">{formatContributorMetric(leaderScore)}</div>
-                  </div>
-                  <div className="rounded-lg bg-white border border-[#e8e8e8] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#828282]">Lead Margin</div>
-                    <div className="mt-1 text-xl font-display tracking-[-0.02em] text-[#202020]">
-                      {leaderboardRunnerUp ? formatContributorMetric(leaderMargin) : 'Clear'}
-                    </div>
+                <div className="text-right lg:min-w-44">
+                  <div className="rounded-lg bg-[#0c0a2b] border border-[#292a4d] px-4 py-3">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#9b9ba4]">Winning Score</div>
+                    <div className="mt-1 text-xl font-display text-white">{formatContributorMetric(leaderScore)}</div>
                   </div>
                 </div>
               </div>
@@ -885,7 +835,7 @@ export default function WorkspaceInsights({
                 const isActive = contributorFilterValue === author.name;
                 const isHovered = hoveredContributor === author.name;
                 const rankAccent = getRankAccent(index);
-                const gapFromLeader = index === 0 ? 0 : Math.max(leaderScore - metricValue, 0);
+                const rankLabel = getRankLabel(index);
 
                 return (
                   <button
@@ -897,7 +847,7 @@ export default function WorkspaceInsights({
                     onBlur={() => setHoveredContributor(null)}
                     className={`w-full rounded-lg border px-3 py-3 text-left transition relative overflow-hidden ${
                       index === 0
-                        ? 'border-[#ff682c] bg-white hover:bg-[#f5f5f5]'
+                        ? 'border-[#ff3a63] bg-[#0c0a2b] hover:bg-[#13151f]'
                         : isActive || isHovered
                           ? `${theme.accentBorder} ${theme.lightBg}`
                           : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
@@ -914,7 +864,7 @@ export default function WorkspaceInsights({
                           style={{
                             borderColor: rankAccent,
                             color: index === 0 ? '#ffffff' : rankAccent,
-                            backgroundColor: index === 0 ? '#202020' : '#ffffff'
+                            backgroundColor: index === 0 ? '#ff3a63' : '#0c0a2b'
                           }}
                         >
                           #{index + 1}
@@ -922,12 +872,14 @@ export default function WorkspaceInsights({
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="font-bold text-sm text-slate-800 truncate">{author.name}</div>
-                            <span
-                              className="rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                              style={{ borderColor: rankAccent, color: rankAccent }}
-                            >
-                              {getRankLabel(index)}
-                            </span>
+                            {rankLabel && (
+                              <span
+                                className="rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                                style={{ borderColor: rankAccent, color: rankAccent }}
+                              >
+                                {rankLabel}
+                              </span>
+                            )}
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
                             {author.count} posts · {platformLabels[author.topPlatform]}
@@ -951,13 +903,12 @@ export default function WorkspaceInsights({
                       />
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-6 gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-x-3 gap-y-1 text-[10px] text-slate-500">
                       <span><strong className="text-slate-700">{author.count}</strong> posts</span>
                       <span><strong className="text-slate-700">{formatCompact(author.views)}</strong> views</span>
                       <span><strong className="text-slate-700">{formatCompact(author.likes)}</strong> likes</span>
                       <span><strong className="text-slate-700">{formatCompact(author.comments)}</strong> comments</span>
                       <span><strong className="text-slate-700">{formatCompact(author.shares)}</strong> shares</span>
-                      <span><strong className="text-slate-700">{index === 0 ? 'Leader' : formatContributorMetric(gapFromLeader)}</strong> gap</span>
                     </div>
                   </button>
                 );
@@ -997,9 +948,9 @@ export default function WorkspaceInsights({
               const isHovered = hoveredMetricContributor === author.name;
               const metrics = [
                 { label: 'Views', value: author.views, max: maxContributorViews, color: theme.chartFill },
-                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#816729' },
-                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#4d4d4d' },
-                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#828282' }
+                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#665eff' },
+                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#ff3a63' },
+                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#ffff00' }
               ];
 
               return (
