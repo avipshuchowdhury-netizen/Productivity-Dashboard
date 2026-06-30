@@ -160,16 +160,52 @@ export default function ContributorPortal({
 
   // Local component theme mapper
   const getThemeColor = () => {
-    return {
-      primary: '#ff3a63',
-      hover: 'hover:bg-[#2c2b52]',
-      border: 'border-[#292a4d] focus:border-[#665eff]',
-      text: 'text-white',
-      lightBg: 'bg-[#13151f]',
-      headingColor: 'text-white',
-      buttonBg: 'bg-[linear-gradient(135deg,#ff8a76_0%,#ff3a63_100%)] text-white hover:opacity-90',
-      focusRing: 'focus:ring-[#665eff]/20'
-    };
+    switch (activePlatform) {
+      case 'facebook':
+        return {
+          primary: '#ff682c',
+          hover: 'hover:bg-[#f5f5f5]',
+          border: 'border-[#e8e8e8] focus:border-[#202020]',
+          text: 'text-[#202020]',
+          lightBg: 'bg-[#f5f5f5]',
+          headingColor: 'text-[#202020]',
+          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          focusRing: 'focus:ring-[#202020]/10'
+        };
+      case 'instagram':
+        return {
+          primary: '#ff682c',
+          hover: 'hover:bg-[#f5f5f5]',
+          border: 'border-[#e8e8e8] focus:border-[#202020]',
+          text: 'text-[#202020]',
+          lightBg: 'bg-[#f5f5f5]',
+          headingColor: 'text-[#202020]',
+          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          focusRing: 'focus:ring-[#202020]/10'
+        };
+      case 'youtube':
+        return {
+          primary: '#ff682c',
+          hover: 'hover:bg-[#f5f5f5]',
+          border: 'border-[#e8e8e8] focus:border-[#202020]',
+          text: 'text-[#202020]',
+          lightBg: 'bg-[#f5f5f5]',
+          headingColor: 'text-[#202020]',
+          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          focusRing: 'focus:ring-[#202020]/10'
+        };
+      default:
+        return {
+          primary: '#ff682c',
+          hover: 'hover:bg-[#f5f5f5]',
+          border: 'border-[#e8e8e8] focus:border-[#202020]',
+          text: 'text-[#202020]',
+          lightBg: 'bg-[#f5f5f5]',
+          headingColor: 'text-[#202020]',
+          buttonBg: 'bg-[#202020] text-white hover:bg-[#4d4d4d]',
+          focusRing: 'focus:ring-[#202020]/10'
+        };
+    }
   };
 
   const themeColors = getThemeColor();
@@ -243,19 +279,20 @@ export default function ContributorPortal({
       <div id="contributor-onboarding" className="max-w-2xl mx-auto my-8 animate-fade-in font-sans">
         <div className="bg-white border border-[#e8e8e8] rounded-xl shadow-xs overflow-hidden">
           {/* Top visual graphic style header */}
-          <div className="p-8 bg-[#13151f] text-white relative overflow-hidden border-b border-[#292a4d]">
-            <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#665eff,#ff3a63,transparent)]"></div>
-            <div className="absolute top-4 right-4 p-2 bg-[#0c0a2b] rounded-xl text-[#ff3a63] border border-[#292a4d]">
+          <div className="p-8 bg-[#f5f5f5] text-[#202020] relative overflow-hidden border-b border-[#e8e8e8]">
+            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full border-[18px] border-[#e8e8e8]"></div>
+            <div className="absolute right-10 bottom-4 h-20 w-20 rounded-full border-[12px] border-[#ff682c]/20"></div>
+            <div className="absolute top-4 right-4 p-2 bg-white rounded-xl text-[#ff682c] border border-[#e8e8e8]">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             
-            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#9b9ba4] bg-[#0c0a2b] border border-[#292a4d] px-2.5 py-1 rounded-xl select-none">
+            <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#4d4d4d] bg-white border border-[#e8e8e8] px-2.5 py-1 rounded-xl select-none">
               SAMARTH WORKSPACE ACCESS
             </span>
             <h2 className="text-3xl font-display font-normal tracking-[-0.02em] leading-none mt-3 flex items-center gap-2">
-              <User className="w-6 h-6 text-[#ff3a63]" /> Contributor Registration & Onboarding
+              <User className="w-6 h-6 text-[#ff682c]" /> Contributor Registration & Onboarding
             </h2>
-            <p className="text-xs text-[#b4b4bb] mt-2 select-none leading-relaxed max-w-xl">
+            <p className="text-xs text-[#4d4d4d] mt-2 select-none leading-relaxed max-w-xl">
               Welcome to the Single Admin Managed Analytics Review of Thematic Handles (SAMARTH) Workspace. Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
             </p>
           </div>

@@ -37,15 +37,48 @@ export default function EntryManagementArchive({
   const [restoringEntryId, setRestoringEntryId] = useState<string | null>(null);
 
   const getThemeClasses = () => {
-    return {
-      primaryText: 'text-white',
-      primaryBg: 'bg-[#2c2b52]',
-      primaryBorder: 'border-[#292a4d] focus:border-[#665eff] focus:ring-[#665eff]/20',
-      accentBorder: 'border-[#292a4d] hover:border-[#665eff]',
-      primaryHover: 'hover:bg-[#2c2b52]',
-      lightBg: 'bg-[#13151f]',
-      outlineRing: 'focus:outline-[#665eff]'
-    };
+    switch (activePlatform) {
+      case 'facebook':
+        return {
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
+        };
+      case 'instagram':
+        return {
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
+        };
+      case 'youtube':
+        return {
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
+        };
+      default:
+        return {
+          primaryText: 'text-[#202020]',
+          primaryBg: 'bg-[#202020]',
+          primaryBorder: 'border-[#e8e8e8] focus:border-[#202020] focus:ring-[#202020]/10',
+          accentBorder: 'border-[#e8e8e8] hover:border-[#828282]',
+          primaryHover: 'hover:bg-[#4d4d4d]',
+          lightBg: 'bg-[#f5f5f5]',
+          outlineRing: 'focus:outline-[#202020]'
+        };
+    }
   };
 
   const theme = getThemeClasses();
