@@ -24,7 +24,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!user) return;
 
   try {
-    const snapshot = await getAuditDb().collection('auditItems').get();
+    const snapshot = await (await getAuditDb()).collection('auditItems').get();
     const auditItems = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }) as StoredAuditItem)
       .sort((a: StoredAuditItem, b: StoredAuditItem) => {

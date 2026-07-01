@@ -1,7 +1,4 @@
-import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import type { FieldValue } from 'firebase-admin/firestore';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { AuditItem } from '../src/types';
 
 export type ApiRequest = {
@@ -28,7 +25,7 @@ type FirestoreAuditItem = AuditItem & {
   updatedAt?: string;
   updatedByEmail?: string;
   archivedByEmail?: string;
-  [key: string]: string | number | FieldValue | undefined;
+  [key: string]: string | number | undefined;
 };
 
 const normalizeEmail = (email?: string | null) => email?.trim().toLowerCase() || '';
@@ -58,6 +55,10 @@ const hasFirebaseAdminConfig = Boolean(
   firebaseAdminConfig.privateKey
 );
 
+const firebaseSecureTokenJwks = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
+);
+
 const isAllowedWorkspaceEmail = (email?: string | null) => {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) return false;
@@ -68,7 +69,13 @@ const isAllowedWorkspaceEmail = (email?: string | null) => {
 
 const canManageEntries = (email?: string | null) => entryManagerEmails.includes(normalizeEmail(email));
 
-const getFirebaseApp = () => {
+const getFirebaseApp = async () => {
+  if (!hasFirebaseAdminConfig) {
+    throw new Error('Firebase Admin config is missing.');
+  }
+
+  const { cert, getApps, initializeApp } = await import('firebase-admin/app');
+
   if (getApps().length === 0) {
     initializeApp({
       credential: cert({
@@ -81,8 +88,10 @@ const getFirebaseApp = () => {
   return getApps()[0];
 };
 
-export const getFirebaseAdminAuth = () => getAuth(getFirebaseApp());
-export const getAuditDb = () => getFirestore(getFirebaseApp());
+export const getAuditDb = async () => {
+  const { getFirestore } = await import('firebase-admin/firestore');
+  return getFirestore(await getFirebaseApp());
+};
 
 export const setSecureApiHeaders = (res: ApiResponse) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -106,27 +115,31 @@ export const authenticateWorkspaceUser = async (
     return null;
   }
 
-  if (!hasFirebaseAdminConfig) {
-    res.status(500).json({ error: 'Firebase API auth is enforced, but server admin config is missing.' });
+  if (!firebaseAdminConfig.projectId) {
+    res.status(500).json({ error: 'Firebase project ID is missing.' });
     return null;
   }
 
   try {
-    const decodedToken = await getFirebaseAdminAuth().verifyIdToken(token, true);
-    const email = decodedToken.email?.toLowerCase();
+    const { payload } = await jwtVerify(token, firebaseSecureTokenJwks, {
+      issuer: `https://securetoken.google.com/${firebaseAdminConfig.projectId}`,
+      audience: firebaseAdminConfig.projectId
+    });
+
+    const email = typeof payload.email === 'string' ? payload.email.toLowerCase() : '';
 
     if (!isAllowedWorkspaceEmail(email)) {
       res.status(403).json({ error: `Only verified @${allowedFirebaseDomain} users can access this workspace.` });
       return null;
     }
 
-    if (decodedToken.email_verified !== true) {
+    if (payload.email_verified !== true) {
       res.status(403).json({ error: 'Firebase email must be verified before accessing this workspace.' });
       return null;
     }
 
     return {
-      uid: decodedToken.uid,
+      uid: String(payload.user_id || payload.sub || ''),
       email: email || '',
       canManageEntries: canManageEntries(email)
     };

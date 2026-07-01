@@ -33,9 +33,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     item?: Record<string, unknown>;
   };
 
-  const auditItems = getAuditDb().collection('auditItems');
-
   try {
+    const auditItems = (await getAuditDb()).collection('auditItems');
+
     if (action === 'create') {
       const now = new Date().toISOString();
       const newItem = normalizeAuditItem({
