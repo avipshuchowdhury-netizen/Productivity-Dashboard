@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
-import { AlertTriangle, LockKeyhole, LogIn, Mail, Moon, ShieldCheck, Sun, UserPlus } from 'lucide-react';
+import React from 'react';
+import { AlertTriangle, LogIn, Moon, ShieldCheck, Sun } from 'lucide-react';
 
 type AuthScreenProps = {
   displayMode: 'light' | 'dark';
   onToggleDisplayMode: () => void;
   isConfigured: boolean;
-  canCreateAccount: boolean;
   allowedDomain: string;
   missingConfig: string[];
   authError: string;
-  onClearError: () => void;
-  onSignInWithEmail: (email: string, password: string) => Promise<void>;
-  onCreateAccountWithEmail: (email: string, password: string) => Promise<void>;
   onSignInWithGoogle: () => Promise<void>;
 };
 
@@ -19,39 +15,16 @@ export default function AuthScreen({
   displayMode,
   onToggleDisplayMode,
   isConfigured,
-  canCreateAccount,
   allowedDomain,
   missingConfig,
   authError,
-  onClearError,
-  onSignInWithEmail,
-  onCreateAccountWithEmail,
   onSignInWithGoogle
 }: AuthScreenProps) {
-  const [authMode, setAuthMode] = useState<'sign-in' | 'create'>('sign-in');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const submitAuth = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    try {
-      if (authMode === 'create' && canCreateAccount) {
-        await onCreateAccountWithEmail(email, password);
-      } else {
-        await onSignInWithEmail(email, password);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div id="auth-gateway" className="min-h-[100dvh] w-full px-4 py-6 md:px-8 flex items-center justify-center">
       <div className="auth-shell w-full max-w-[1040px] overflow-hidden rounded-xl border border-[var(--palette-line)] bg-[var(--surface-card)] shadow-xs">
         <div className="grid min-h-[640px] grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="auth-hero relative overflow-hidden p-7 md:p-10 flex flex-col justify-between">
+          <section className="auth-hero relative overflow-hidden p-7 md:p-10 flex flex-col justify-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--palette-accent)]">
                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -63,25 +36,6 @@ export default function AuthScreen({
               <p className="mt-3 max-w-xl text-sm md:text-base font-semibold leading-relaxed text-[var(--text-muted)]">
                 Single Admin Managed AI Run Thematic Handles.
               </p>
-            </div>
-
-            <div className="auth-signal-grid mt-10 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span>Auth Layer</span>
-                <strong>Firebase</strong>
-              </div>
-              <div>
-                <span>Access Mode</span>
-                <strong>@{allowedDomain}</strong>
-              </div>
-              <div>
-                <span>Edit Authority</span>
-                <strong>Avipshu only</strong>
-              </div>
-              <div>
-                <span>Theme</span>
-                <strong>Coral HUD</strong>
-              </div>
             </div>
           </section>
 
@@ -126,91 +80,18 @@ export default function AuthScreen({
               </div>
             ) : (
               <>
-                {canCreateAccount && (
-                  <div className="mb-4 grid grid-cols-2 rounded-lg border border-[var(--palette-line)] bg-[var(--surface-panel)] p-1">
-                    {([
-                      { id: 'sign-in', label: 'Sign In', icon: LogIn },
-                      { id: 'create', label: 'Create', icon: UserPlus }
-                    ] as const).map(option => {
-                      const Icon = option.icon;
-                      const selected = authMode === option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            setAuthMode(option.id);
-                            onClearError();
-                          }}
-                          className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-bold transition ${
-                            selected ? 'samarth-theme-button text-white' : 'text-[var(--text-muted)] hover:bg-[var(--palette-soft)]'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {option.label}
-                        </button>
-                      );
-                    })}
+                {authError && (
+                  <div className="mb-4 rounded-lg border border-[var(--palette-line)] bg-[var(--palette-soft)] px-3 py-2 text-xs font-bold text-[var(--palette-ink)]">
+                    {authError}
                   </div>
                 )}
-
-                <form onSubmit={submitAuth} className="space-y-4">
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--palette-accent)]" />
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={event => setEmail(event.target.value)}
-                        className="w-full rounded-lg border border-[var(--palette-line)] bg-[var(--surface-panel)] px-9 py-2.5 text-sm font-semibold text-[var(--text-main)] outline-hidden focus:border-[var(--palette-accent)]"
-                        placeholder={`name@${allowedDomain}`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--palette-accent)]" />
-                      <input
-                        type="password"
-                        required
-                        minLength={6}
-                        value={password}
-                        onChange={event => setPassword(event.target.value)}
-                        className="w-full rounded-lg border border-[var(--palette-line)] bg-[var(--surface-panel)] px-9 py-2.5 text-sm font-semibold text-[var(--text-main)] outline-hidden focus:border-[var(--palette-accent)]"
-                        placeholder="Minimum 6 characters"
-                      />
-                    </div>
-                  </div>
-
-                  {authError && (
-                    <div className="rounded-lg border border-[var(--palette-line)] bg-[var(--palette-soft)] px-3 py-2 text-xs font-bold text-[var(--palette-ink)]">
-                      {authError}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="samarth-theme-button flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {authMode === 'sign-in' ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                    {isSubmitting ? 'Authenticating...' : authMode === 'sign-in' ? 'Enter Workspace' : 'Create Firebase Account'}
-                  </button>
-                </form>
 
                 <button
                   type="button"
                   onClick={onSignInWithGoogle}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-5 py-3 text-sm font-bold text-[var(--text-main)] transition hover:border-[var(--palette-accent)]"
+                  className="samarth-theme-button flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white transition"
                 >
+                  <LogIn className="h-4 w-4" />
                   Continue with Varahe Google
                 </button>
               </>

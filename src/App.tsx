@@ -52,14 +52,10 @@ export default function App() {
     user,
     isLoading: isAuthLoading,
     isConfigured: isAuthConfigured,
-    canCreateAccount,
     canManageEntries,
     allowedDomain,
     missingConfig,
     authError,
-    clearAuthError,
-    signInWithEmail,
-    createAccountWithEmail,
     signInWithGoogle,
     signOut,
     getIdToken
@@ -364,13 +360,9 @@ export default function App() {
           displayMode={displayMode}
           onToggleDisplayMode={() => setDisplayMode(prev => prev === 'dark' ? 'light' : 'dark')}
           isConfigured={isAuthConfigured}
-          canCreateAccount={canCreateAccount}
           allowedDomain={allowedDomain}
           missingConfig={missingConfig}
           authError={authError}
-          onClearError={clearAuthError}
-          onSignInWithEmail={signInWithEmail}
-          onCreateAccountWithEmail={createAccountWithEmail}
           onSignInWithGoogle={signInWithGoogle}
         />
       </div>

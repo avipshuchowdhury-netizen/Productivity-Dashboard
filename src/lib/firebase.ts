@@ -45,8 +45,6 @@ export const entryManagerEmails = parseEmailList(
   import.meta.env.VITE_ENTRY_MANAGER_EMAILS || 'avipshu.chowdhury@varaheanalytics.com'
 );
 
-export const isAccountCreationEnabled = import.meta.env.VITE_ENABLE_ACCOUNT_CREATION === 'true';
-
 export const isAllowedAuthEmail = (email?: string | null) => {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) return false;

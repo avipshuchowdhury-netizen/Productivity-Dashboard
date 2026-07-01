@@ -359,30 +359,6 @@
   opacity: 0.52;
 }
 
-.auth-signal-grid > div {
-  border: 1px solid var(--palette-line);
-  border-radius: 8px;
-  background: var(--surface-glass);
-  padding: 0.85rem;
-}
-
-.auth-signal-grid span {
-  display: block;
-  color: var(--text-faint);
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.auth-signal-grid strong {
-  display: block;
-  margin-top: 0.28rem;
-  color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-}
-
 .samarth-command-panel::before {
   content: "";
   position: absolute;

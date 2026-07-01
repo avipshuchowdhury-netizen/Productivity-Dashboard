@@ -10,7 +10,6 @@ interface ImportMetaEnv {
   readonly VITE_ALLOWED_AUTH_DOMAIN?: string;
   readonly VITE_ALLOWED_AUTH_EMAILS?: string;
   readonly VITE_ENTRY_MANAGER_EMAILS?: string;
-  readonly VITE_ENABLE_ACCOUNT_CREATION?: string;
 }
 
 interface ImportMeta {

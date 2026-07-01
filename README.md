@@ -33,12 +33,6 @@ VITE_ALLOWED_AUTH_EMAILS=
 VITE_ENTRY_MANAGER_EMAILS=avipshu.chowdhury@varaheanalytics.com
 ```
 
-Account creation is hidden by default for the single-admin production flow. If you temporarily want a signup tab while setting up Firebase users:
-
-```bash
-VITE_ENABLE_ACCOUNT_CREATION=true
-```
-
 To enforce Firebase ID token verification on the Express API, add Firebase Admin service account values and enable enforcement:
 
 ```bash
@@ -53,7 +47,7 @@ FIREBASE_ENTRY_MANAGER_EMAILS=avipshu.chowdhury@varaheanalytics.com
 
 Security model:
 
-- Only verified Firebase users with an `@varaheanalytics.com` email can load the workspace.
+- Only verified Firebase Google users with an `@varaheanalytics.com` email can load the workspace.
 - All production API routes require a Firebase ID token verified by Firebase Admin.
 - Any `@varaheanalytics.com` contributor can create/upload entries.
 - Only `avipshu.chowdhury@varaheanalytics.com` can edit, archive, restore, or delete entries.
@@ -61,8 +55,9 @@ Security model:
 
 Firebase CLI auth setup:
 
-- `firebase.json` enables Email/Password and Google Sign-In for the project in `.firebaserc`.
+- `firebase.json` enables Google Sign-In for the project in `.firebaserc`.
 - Deploy provider config with `npx firebase-tools deploy --only auth`.
+- Keep Email/Password disabled in Firebase Authentication.
 - Keep `samarth-productivity-dashboard.vercel.app` in Firebase Authentication authorized domains so production Google sign-in can run.
 
 Keep `.env` and service account private keys out of Git.

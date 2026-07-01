@@ -1,7 +1,6 @@
 {
   "auth": {
     "providers": {
-      "emailPassword": true,
       "googleSignIn": {
         "oAuthBrandDisplayName": "SAMARTH",
         "supportEmail": "avipshu.chowdhury@varaheanalytics.com"
