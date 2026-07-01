@@ -59,4 +59,10 @@ Security model:
 - Only `avipshu.chowdhury@varaheanalytics.com` can edit, archive, restore, or delete entries.
 - Local entry write fallback is disabled; the secure API is the source of truth.
 
+Firebase CLI auth setup:
+
+- `firebase.json` enables Email/Password and Google Sign-In for the project in `.firebaserc`.
+- Deploy provider config with `npx firebase-tools deploy --only auth`.
+- Keep `samarth-productivity-dashboard.vercel.app` in Firebase Authentication authorized domains so production Google sign-in can run.
+
 Keep `.env` and service account private keys out of Git.
