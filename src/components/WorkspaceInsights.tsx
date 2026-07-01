@@ -79,15 +79,15 @@ export default function WorkspaceInsights({
         };
       default:
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#f8a4a4] focus:border-[#f73b20] focus:ring-[#f73b20]/10',
-          accentBorder: 'border-[#f8a4a4] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#d8321b]',
-          lightBg: 'bg-[#fbdfd9]',
-          textColor: 'text-[#360802]',
-          outlineRing: 'focus:outline-[#f73b20]',
-          chartFill: '#f73b20'
+          primaryText: 'text-[var(--palette-accent)]',
+          primaryBg: 'bg-[var(--palette-accent)]',
+          primaryBorder: 'border-[var(--palette-line)] focus:border-[var(--palette-accent)]',
+          accentBorder: 'border-[var(--palette-line)] hover:border-[var(--palette-accent)]',
+          primaryHover: 'hover:opacity-90',
+          lightBg: 'bg-[var(--palette-soft)]',
+          textColor: 'text-[var(--palette-ink)]',
+          outlineRing: 'focus:outline-[var(--palette-accent)]',
+          chartFill: 'var(--palette-accent)'
         };
     }
   };
@@ -284,6 +284,14 @@ export default function WorkspaceInsights({
   const totalLikes = focusedTimelineData.reduce((acc, item) => acc + item.likes, 0);
   const totalComments = focusedTimelineData.reduce((acc, item) => acc + item.comments, 0);
   const totalShares = focusedTimelineData.reduce((acc, item) => acc + item.shares, 0);
+  const activeEntryCount = focusedTimelineData.length;
+  const engagementTotal = totalLikes + totalComments + totalShares;
+  const avgViewsPerEntry = activeEntryCount > 0 ? Math.round(totalViews / activeEntryCount) : 0;
+  const avgEngagementPerEntry = activeEntryCount > 0 ? Math.round(engagementTotal / activeEntryCount) : 0;
+  const commentShareSignal = totalViews > 0 ? ((totalComments + totalShares) / totalViews) * 100 : 0;
+  const selectedTimelineLabel = selectedTimeline === 'custom'
+    ? 'Custom range'
+    : `Last ${selectedTimeline.replace('d', ' days')}`;
 
   // Platform specific counts
   const fbItems = focusedTimelineData.filter(i => i.platform === 'facebook');
@@ -335,11 +343,23 @@ export default function WorkspaceInsights({
     <div id="workspace-insights" className="space-y-6">
       
       {/* Top Filter & Control Panel with Orange Theme Accents */}
-      <div className="flex flex-col gap-4 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
+      <div className="samarth-command-panel relative overflow-hidden flex flex-col gap-4 p-6 rounded-xl shadow-xs">
+        <div className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,var(--palette-accent),var(--sci-cyan))]" />
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-display font-bold text-slate-800">Workspace Performance Insights</h2>
-            <p className="text-xs text-slate-500">Subtle and real-time performance audit metrics of your handles.</p>
+            <h2 className="text-lg font-display font-bold text-slate-800">SAMARTH Command Grid</h2>
+            <p className="text-xs text-slate-500">Live performance signals for active handles and contributor uploads.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                {focusedTimelineData.length} active entries
+              </span>
+              <span className="rounded-full border border-[color-mix(in_srgb,var(--sci-cyan)_38%,transparent)] bg-[color-mix(in_srgb,var(--sci-cyan)_10%,transparent)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--sci-cyan)]">
+                {formatCompact(totalViews)} views
+              </span>
+              <span className="rounded-full border border-[color-mix(in_srgb,var(--palette-accent-3)_38%,transparent)] bg-[color-mix(in_srgb,var(--palette-accent-3)_10%,transparent)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--palette-accent-3)]">
+                {authorStats.length} contributors
+              </span>
+            </div>
           </div>
           
           {/* Timeline Selector in Top Corner */}
@@ -393,7 +413,7 @@ export default function WorkspaceInsights({
         )}
 
         {/* State-wise, Page-wise, Contributor-wise, and Channel filters */}
-        <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+        <div className="rounded-lg border border-[var(--palette-line)] bg-[var(--surface-panel)] p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 items-start">
           {/* State Filter */}
           <div className="flex items-center gap-2">
             <MapPin className={`w-4 h-4 shrink-0 ${theme.primaryText}`} />
@@ -465,7 +485,7 @@ export default function WorkspaceInsights({
           </div>
 
           {/* Channel Platform Tab */}
-          <div className="flex items-center gap-2 xl:justify-end">
+          <div className="flex items-center gap-2 md:col-span-2 xl:col-span-3 2xl:col-span-1 2xl:justify-end">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-tight hidden lg:inline">Channel:</span>
             <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 gap-0.5 max-w-full overflow-x-auto">
               {(['all', 'facebook', 'instagram', 'youtube'] as const).map(plat => (
@@ -491,7 +511,7 @@ export default function WorkspaceInsights({
       <div id="insights-kpi-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Metric 1: Contents Published */}
-        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:border-[#e83f23]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contents Published</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
@@ -499,15 +519,16 @@ export default function WorkspaceInsights({
             </div>
           </div>
           <div className="text-2xl font-display font-extrabold text-slate-900">
-            {focusedTimelineData.length} <span className="text-sm font-semibold text-slate-500">Units</span>
+            {activeEntryCount} <span className="text-sm font-semibold text-slate-500">Units</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1.5">
-            Active in this context
+          <p className="text-xs text-slate-500 mt-1.5 flex items-center justify-between gap-2">
+            <span>{selectedTimelineLabel}</span>
+            <span className="font-mono text-[var(--palette-accent)]">{authorStats.length} users</span>
           </p>
         </div>
 
         {/* Metric 2: Views */}
-        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:border-[#e83f23]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Views</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
@@ -517,13 +538,14 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalViews.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center gap-1">
-            <span>{focusedTimelineData.length > 0 ? (focusedContributorStat ? focusedContributorStat.name : 'Current period') : 'No entries yet'}</span>
+          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
+            <span>{focusedContributorStat ? focusedContributorStat.name : 'Current period'}</span>
+            <span className="font-mono text-[var(--palette-accent-2)]">{formatCompact(avgViewsPerEntry)} avg</span>
           </p>
         </div>
 
         {/* Metric 3: Likes */}
-        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:border-[#e83f23]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Likes</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
@@ -533,13 +555,14 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalLikes.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5">
-            Reactions recorded
+          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
+            <span>Reactions recorded</span>
+            <span className="font-mono text-[var(--palette-accent-3)]">{formatCompact(avgEngagementPerEntry)} avg eng.</span>
           </p>
         </div>
 
         {/* Metric 4: Comments */}
-        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:border-[#e83f23]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Comments</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
@@ -549,13 +572,14 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalComments.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5">
-            Audience replies
+          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
+            <span>Audience replies</span>
+            <span className="font-mono text-[#fb2d54]">{formatCompact(totalComments + totalShares)} action signal</span>
           </p>
         </div>
 
         {/* Metric 5: Shares */}
-        <div className={`p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:${theme.primaryBorder}`}>
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs transition-colors hover:border-[#e83f23]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Shares</span>
             <div className={`p-2 ${theme.lightBg} ${theme.primaryText} rounded-lg`}>
@@ -565,8 +589,9 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalShares.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5">
-            Forwarded content
+          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
+            <span>Forwarded content</span>
+            <span className="font-mono text-[var(--sci-violet)]">{commentShareSignal.toFixed(1)}% signal</span>
           </p>
         </div>
 
@@ -675,7 +700,7 @@ export default function WorkspaceInsights({
                 </svg>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
-                  Insufficient timeline sequence for selected parameters
+                  Add another dated entry to draw this trend.
                 </div>
               )}
 
@@ -794,7 +819,7 @@ export default function WorkspaceInsights({
                         <span className="font-extrabold text-slate-800">
                           {formatCompact(author.views)} views
                         </span>
-                        <span className="text-slate-400 block text-[10px]">{author.count} posts · {formatCompact(author.shares)} shares</span>
+                        <span className="text-slate-400 block text-[10px]">{author.count} posts / {formatCompact(author.shares)} shares</span>
                       </div>
                     </button>
                   ))
@@ -816,8 +841,8 @@ export default function WorkspaceInsights({
         <div className="xl:col-span-3 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Championship Leaderboard</h3>
-              <p className="text-xs text-slate-400">A live race table based on the selected competition metric and current filters.</p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Leaderboard</h3>
+              <p className="text-xs text-slate-400">Ranked by the selected metric and current filters.</p>
             </div>
             <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
               {(['performance', 'posts', 'views', 'likes', 'comments', 'shares'] as const).map(metric => (
@@ -848,7 +873,7 @@ export default function WorkspaceInsights({
                     <Trophy className="w-6 h-6 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f73b20]">Current Rank 1 Winner</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f73b20]">Current Leader</div>
                     <div className="mt-1 text-2xl font-display font-semibold leading-none text-[#360802] truncate">
                       {leaderboardLeader.name}
                     </div>
@@ -859,7 +884,7 @@ export default function WorkspaceInsights({
                 </div>
                 <div className="text-right lg:min-w-44">
                   <div className="rounded-lg bg-[#fffaf8] border border-[#f8a4a4] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#9b6255]">Winning Score</div>
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#9b6255]">Top Score</div>
                     <div className="mt-1 text-xl font-display font-semibold text-[#360802]">{formatContributorMetric(leaderScore)}</div>
                   </div>
                 </div>
@@ -922,7 +947,7 @@ export default function WorkspaceInsights({
                             )}
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                            {author.count} posts · {platformLabels[author.topPlatform]}
+                            {author.count} posts / {platformLabels[author.topPlatform]}
                           </div>
                         </div>
                       </div>

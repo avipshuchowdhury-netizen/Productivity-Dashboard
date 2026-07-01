@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Archive,
   BarChart2, 
+  Moon,
   RefreshCw, 
+  Sun,
   Target, 
   Upload
 } from 'lucide-react';
@@ -16,7 +18,10 @@ import ContributorPortal from './components/ContributorPortal';
 import EntryManagementArchive from './components/EntryManagementArchive';
 
 const AUDIT_STORAGE_KEY = 'samarth_audit_items';
-const SAMARTH_FULL_FORM = 'Single Admin Managed Analytics Review of Thematic Handles';
+const MODE_STORAGE_KEY = 'samarth_display_mode';
+const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
+
+type DisplayMode = 'light' | 'dark';
 
 const readLocalAuditItems = (): AuditItem[] => {
   try {
@@ -57,6 +62,10 @@ export default function App() {
   
   // High-level Platform Theme state
   const [activePlatform, setActivePlatform] = useState<'all' | 'facebook' | 'instagram' | 'youtube'>('all');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(() => {
+    const cachedMode = localStorage.getItem(MODE_STORAGE_KEY);
+    return cachedMode === 'dark' ? 'dark' : 'light';
+  });
 
   const oldDemoPageNames = [
     "Jan Manch News",
@@ -95,6 +104,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('samarth_saved_pages', JSON.stringify(savedPages));
   }, [savedPages]);
+
+  useEffect(() => {
+    localStorage.setItem(MODE_STORAGE_KEY, displayMode);
+  }, [displayMode]);
   
   const getAppThemeClasses = () => {
     switch (activePlatform) {
@@ -133,14 +146,14 @@ export default function App() {
         };
       default:
         return {
-          headerText: 'text-[#f73b20]',
-          sideText: 'text-[#f73b20]',
-          logoBg: 'bg-[#fffaf8] border border-[#f73b20]',
-          logoText: 'text-[#360802]',
-          btnBg: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white hover:opacity-90',
-          accentText: 'text-[#f73b20]',
-          accentBg: 'bg-[#fbdfd9] text-[#360802] border border-[#f8a4a4]',
-          sideActive: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white'
+          headerText: 'text-[var(--palette-accent)]',
+          sideText: 'text-[var(--palette-accent)]',
+          logoBg: 'bg-[var(--palette-soft)] border border-[var(--palette-line)]',
+          logoText: 'text-[var(--palette-ink)]',
+          btnBg: 'samarth-theme-button text-white hover:opacity-90',
+          accentText: 'text-[var(--palette-accent)]',
+          accentBg: 'bg-[var(--palette-soft)] text-[var(--palette-ink)] border border-[var(--palette-line)]',
+          sideActive: 'samarth-theme-button text-white'
         };
     }
   };
@@ -293,18 +306,18 @@ export default function App() {
   };
 
   return (
-    <div id="full-app-root" className="min-h-screen flex font-sans text-[#360802] overflow-x-hidden">
+    <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
       
       {/* Left Navigation Rail (SAMARTH Theme) */}
-      <aside id="left-sidebar-rail" className="hidden">
+      <aside id="left-sidebar-rail" className="hidden lg:flex sticky top-0 h-[100dvh] w-[132px] shrink-0 flex-col items-center gap-4 border-r border-[var(--palette-line)] bg-[var(--surface-header)] px-4 py-4 shadow-[8px_0_30px_-26px_rgba(47,23,16,0.45)] backdrop-blur-md">
         {/* Sidebar Logo branded as SAMARTH with dynamic platform color matching */}
-        <div className={`w-18 h-18 rounded-xl flex flex-col items-center justify-center font-bold text-xs select-none text-center px-1 font-display transition-all duration-300 ${appTheme.logoBg}`}>
-          <span className={`font-extrabold uppercase tracking-[0.03em] text-[11px] ${appTheme.logoText}`}>SAMARTH</span>
-          <span className={`text-[7px] uppercase tracking-widest leading-none mt-0.5 font-bold ${appTheme.sideText}`}>WORKSPACE</span>
+        <div className={`w-22 h-20 rounded-xl flex flex-col items-center justify-center font-bold text-xs select-none text-center px-1 font-display transition-all duration-300 shadow-xs ${appTheme.logoBg}`}>
+          <span className={`font-extrabold uppercase tracking-[0.03em] text-sm ${appTheme.logoText}`}>SAMARTH</span>
+          <span className={`text-[10px] uppercase tracking-widest leading-none mt-1 font-bold ${appTheme.sideText}`}>WORKSPACE</span>
         </div>
 
         {/* Sidebar Nav Buttons */}
-        <nav className="flex-1 flex flex-col gap-3.5 w-full px-2 mt-4">
+        <nav className="flex-1 flex flex-col gap-3 w-full px-1 mt-2">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -315,17 +328,19 @@ export default function App() {
                   setActiveTab(tab.id);
                   setErrorMessage('');
                 }}
-                className={`w-full py-3 px-1 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center relative group cursor-pointer ${
+                aria-current={isSelected ? 'page' : undefined}
+                className={`samarth-sidebar-item w-full py-3.5 px-1 rounded-xl flex flex-col items-center justify-center gap-2 text-center relative group cursor-pointer border ${
                   isSelected
-                    ? appTheme.sideActive
-                    : 'text-[#6c3a2f] border border-transparent hover:border-[#f8a4a4] hover:bg-[#fbdfd9]'
+                    ? `${appTheme.sideActive} samarth-sidebar-active border-transparent shadow-xs`
+                    : 'text-[var(--text-muted)] border-transparent hover:border-[var(--palette-line)] hover:bg-[var(--palette-soft)]'
                 }`}
                 title={tab.label}
               >
-                <span className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${isSelected ? tab.iconTile : tab.idleTile}`}>
-                  <Icon className="w-4.5 h-4.5 shrink-0" />
+                <span className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+                <span className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isSelected ? tab.iconTile : tab.idleTile}`}>
+                  <Icon className="w-5 h-5 shrink-0" />
                 </span>
-                <span className="text-[8px] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[76px] scale-95 uppercase font-mono">
+                <span className="text-xs font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[92px] uppercase font-mono">
                   {shortTabLabels[tab.id]}
                 </span>
               </button>
@@ -334,14 +349,14 @@ export default function App() {
         </nav>
 
         {/* Dynamic counter widget inside sidebar */}
-        <div className="w-18 px-1 py-2 bg-[#fef5f3] rounded-xl text-center border border-[#f8a4a4] mb-2 hidden lg:block">
-          <p className="text-[7px] text-[#9b6255] font-bold uppercase tracking-wider">Metrics</p>
-          <span className={`text-xs font-bold font-mono transition-colors duration-350 ${appTheme.sideText}`}>{data.auditItems.length}</span>
+        <div className="samarth-rail-counter w-22 px-2 py-2.5 bg-[var(--surface-panel)] rounded-xl text-center border border-[var(--palette-line)] mb-1 hidden lg:block shadow-xs">
+          <p className="text-xs text-[var(--text-faint)] font-bold uppercase tracking-wider">Records</p>
+          <span className={`text-lg font-bold font-mono transition-colors duration-350 ${appTheme.sideText}`}>{data.auditItems.length}</span>
         </div>
 
         {/* Avatar block */}
-        <div className="mt-2 pt-4 border-t border-[#f8a4a4] w-full flex flex-col items-center">
-          <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none ${appTheme.headerText}`}>
+        <div className="mt-1 pt-4 border-t border-[var(--palette-line)] w-full flex flex-col items-center">
+          <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none shadow-xs ${appTheme.headerText}`}>
             S
           </div>
         </div>
@@ -351,29 +366,31 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header */}
-        <header className="shrink-0 bg-[#fffaf8]/95 flex flex-col gap-4 px-4 py-4 md:px-8 md:py-6 select-none z-50 border-b border-[#f8a4a4]">
-          <div className="max-w-[1200px] w-full mx-auto flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className={`p-1.5 rounded-lg md:hidden ${appTheme.accentBg}`}>
-              <Target className="w-5 h-5 animate-pulse" />
+        <header className="sticky top-0 shrink-0 bg-[var(--surface-header)] backdrop-blur-md flex flex-col gap-3 px-4 py-3 md:px-8 md:py-4 select-none z-50 border-b border-[var(--palette-line)]">
+          <div className="max-w-[1360px] w-full mx-auto flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${appTheme.accentBg}`}>
+              <Target className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className={`text-[11px] sm:text-xs font-extrabold uppercase tracking-wider ${appTheme.headerText}`}>
+              <div className={`text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.14em] ${appTheme.headerText}`}>
                 Team Workspace
               </div>
-              <h1 className="mt-1 text-3xl sm:text-4xl lg:text-5xl font-semibold leading-none font-display text-[#360802]">
-                SAMARTH
-              </h1>
-              <p className="mt-1 text-sm md:text-base font-semibold leading-snug text-[#6c3a2f] max-w-[760px]">
+              <div className="mt-0.5 flex flex-wrap items-end gap-x-3 gap-y-1">
+                <h1 className="text-2xl sm:text-3xl font-semibold leading-none font-display text-[var(--text-main)]">
+                  SAMARTH
+                </h1>
+                <div className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ${appTheme.accentBg}`}>
+                  {shortTabLabels[activeTab]}
+                </div>
+              </div>
+              <p className="mt-1 text-xs md:text-sm font-medium leading-snug text-[var(--text-muted)] max-w-[760px]">
                 {SAMARTH_FULL_FORM}
               </p>
-              <div className={`mt-2 inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${appTheme.accentBg}`}>
-                Active section: {tabs.find(t => t.id === activeTab)?.label || "Production Overview"}
-              </div>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center justify-center bg-[#fef5f3] border border-[#f8a4a4] rounded-[200px] p-1.5 gap-1 shadow-xs">
+          <nav className="hidden md:flex lg:hidden items-center justify-center bg-[var(--surface-panel)] border border-[var(--palette-line)] rounded-[200px] p-1 gap-1 shadow-xs">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isSelected = activeTab === tab.id;
@@ -384,41 +401,50 @@ export default function App() {
                     setActiveTab(tab.id);
                     setErrorMessage('');
                   }}
-                  className={`flex items-center gap-2 rounded-[200px] px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                    isSelected ? appTheme.sideActive : 'text-[#6c3a2f] hover:bg-[#fbdfd9]'
+                  className={`flex items-center gap-2 rounded-[200px] px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                    isSelected ? appTheme.sideActive : 'text-[var(--text-muted)] hover:bg-[var(--palette-soft)]'
                   }`}
                   title={tab.label}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#f73b20]'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[var(--palette-accent)]'}`} />
                   <span>{shortTabLabels[tab.id]}</span>
                 </button>
               );
             })}
           </nav>
 
-          <div className="flex gap-4 md:gap-5 items-center">
+          <div className="flex flex-wrap justify-end gap-3 md:gap-4 items-center">
+            <button
+              type="button"
+              onClick={() => setDisplayMode(prev => prev === 'dark' ? 'light' : 'dark')}
+              className="samarth-mode-toggle flex items-center gap-2 rounded-xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] shadow-xs"
+              title={`Switch to ${displayMode === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {displayMode === 'dark' ? <Sun className="w-4 h-4 text-[var(--palette-accent)]" /> : <Moon className="w-4 h-4 text-[var(--palette-accent)]" />}
+              <span>{displayMode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+
             {/* Dynamic score statistic */}
-            <div className="text-right hidden md:block">
-              <p className="text-[9px] uppercase text-[#9b6255] font-extrabold tracking-widest">Entries</p>
-              <p className={`text-sm font-bold ${appTheme.headerText}`}>{data.auditItems.length}</p>
+            <div className="text-right hidden md:block rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-1.5">
+              <p className="text-[9px] uppercase text-[var(--text-faint)] font-extrabold tracking-widest">Entries</p>
+              <p className={`text-sm font-bold font-mono ${appTheme.headerText}`}>{data.auditItems.length}</p>
             </div>
-            <div className="h-8 w-[1px] bg-[#f8a4a4] hidden md:block"></div>
 
             {/* Sync trigger button */}
             <button 
               onClick={() => fetchDashboardData(true)}
-              className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${appTheme.btnBg}`}
+              className={`px-4 py-2 rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${appTheme.btnBg}`}
               title="Sync team database"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span className="hidden xs:inline">{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
+              <span>{isSyncing ? 'Syncing' : 'Sync Data'}</span>
             </button>
           </div>
           </div>
         </header>
 
         {/* Mobile Horizontal Navigation Tabs */}
-        <div className="md:hidden mx-4 mb-3 flex overflow-x-auto whitespace-nowrap bg-[#fffaf8] border border-[#f8a4a4] rounded-[200px] p-1.5 gap-1.5 select-none z-40 shadow-xs">
+        <div className="md:hidden mx-4 mt-3 mb-3 flex overflow-x-auto whitespace-nowrap bg-[var(--surface-glass)] border border-[var(--palette-line)] rounded-[200px] p-1 gap-1 select-none z-40 shadow-xs">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -432,10 +458,10 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[200px] text-xs font-semibold select-none transition-colors cursor-pointer ${
                   isSelected 
                     ? appTheme.btnBg
-                    : 'text-[#6c3a2f] hover:bg-[#fbdfd9]'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--palette-soft)]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#f73b20]'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[var(--palette-accent)]'}`} />
                 <span>{shortTabLabels[tab.id]}</span>
               </button>
             );
@@ -443,7 +469,7 @@ export default function App() {
         </div>
 
         {/* Main Content scrollable panel */}
-        <main className="p-4 md:p-8 flex-1 flex flex-col space-y-6 overflow-y-auto max-w-[1200px] w-full mx-auto">
+        <main className="p-4 md:p-6 flex-1 flex flex-col space-y-6 overflow-y-auto max-w-[1360px] w-full mx-auto">
           
           {/* Sync notification message banner if any */}
           {errorMessage && (
@@ -457,7 +483,7 @@ export default function App() {
             {isLoading ? (
               <div className="py-24 text-center space-y-3 flex flex-col items-center justify-center">
                 <RefreshCw className={`w-8 h-8 animate-spin ${appTheme.headerText}`} />
-                <p className="text-sm text-slate-500 font-semibold animate-pulse">Mounting social media productivity database streams...</p>
+                <p className="text-sm text-slate-500 font-semibold">Loading workspace data...</p>
               </div>
             ) : (
               <div className="opacity-100 transition-opacity duration-300">
@@ -503,7 +529,7 @@ export default function App() {
         </main>
 
         {/* Professional Humble Footer */}
-        <footer id="workspace-footer" className="bg-[#fef5f3] border-t border-[#f8a4a4] py-4 text-center text-[11px] text-[#9b6255] select-none">
+        <footer id="workspace-footer" className="bg-[var(--surface-header)] border-t border-[var(--palette-line)] py-4 text-center text-[11px] text-[var(--text-faint)] select-none">
           <p>© 2026 SAMARTH Social Media Team Workspace. All audits aligned and synced with process metrics.</p>
         </footer>
 

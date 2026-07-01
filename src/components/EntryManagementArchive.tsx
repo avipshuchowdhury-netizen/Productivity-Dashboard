@@ -70,13 +70,13 @@ export default function EntryManagementArchive({
         };
       default:
         return {
-          primaryText: 'text-[#f73b20]',
-          primaryBg: 'bg-[#f73b20]',
-          primaryBorder: 'border-[#f8a4a4] focus:border-[#f73b20] focus:ring-[#f73b20]/10',
-          accentBorder: 'border-[#f8a4a4] hover:border-[#f73b20]',
-          primaryHover: 'hover:bg-[#d8321b]',
-          lightBg: 'bg-[#fbdfd9]',
-          outlineRing: 'focus:outline-[#f73b20]'
+          primaryText: 'text-[var(--palette-accent)]',
+          primaryBg: 'bg-[var(--palette-accent)]',
+          primaryBorder: 'border-[var(--palette-line)] focus:border-[var(--palette-accent)]',
+          accentBorder: 'border-[var(--palette-line)] hover:border-[var(--palette-accent)]',
+          primaryHover: 'hover:opacity-90',
+          lightBg: 'bg-[var(--palette-soft)]',
+          outlineRing: 'focus:outline-[var(--palette-accent)]'
         };
     }
   };
@@ -286,7 +286,7 @@ export default function EntryManagementArchive({
           </div>
         </div>
 
-        <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+        <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 items-start">
           <div className="flex items-center gap-2">
             <MapPin className={`w-4 h-4 shrink-0 ${theme.primaryText}`} />
             <span className="text-xs font-bold text-slate-500 uppercase tracking-tight">State:</span>
@@ -354,7 +354,7 @@ export default function EntryManagementArchive({
             </select>
           </div>
 
-          <div className="flex items-center gap-2 xl:justify-end">
+          <div className="flex items-center gap-2 md:col-span-2 xl:col-span-3 2xl:col-span-1 2xl:justify-end">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-tight hidden lg:inline">Channel:</span>
             <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 gap-0.5 max-w-full overflow-x-auto">
               {(['all', 'facebook', 'instagram', 'youtube'] as const).map(plat => (
@@ -377,17 +377,17 @@ export default function EntryManagementArchive({
 
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-xs overflow-hidden">
         <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-[linear-gradient(135deg,#e6f0ff_0%,#fbdfd9_100%)]">
-          <div className="px-5 py-3">
+          <div className="samarth-management-stat px-5 py-3">
             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Active Stored</div>
-            <div className="text-lg font-extrabold text-slate-800">{activeStoredEntryCount}</div>
+              <div className="text-lg font-extrabold text-slate-800">{activeStoredEntryCount}</div>
           </div>
-          <div className="px-5 py-3">
+          <div className="samarth-management-stat px-5 py-3">
             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Archived Stored</div>
-            <div className="text-lg font-extrabold text-slate-800">{archivedStoredEntryCount}</div>
+              <div className="text-lg font-extrabold text-slate-800">{archivedStoredEntryCount}</div>
           </div>
-          <div className="px-5 py-3">
+          <div className="samarth-management-stat px-5 py-3">
             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Total Stored</div>
-            <div className="text-lg font-extrabold text-slate-800">{storedEntryCount}</div>
+              <div className="text-lg font-extrabold text-slate-800">{storedEntryCount}</div>
           </div>
         </div>
 
@@ -545,10 +545,17 @@ export default function EntryManagementArchive({
           </form>
         )}
 
-        <div className="divide-y divide-slate-100 max-h-[36rem] overflow-y-auto">
-          {managedEntries.length > 0 ? (
-            managedEntries.map(item => (
-              <div key={item.id} className="p-4 flex flex-col xl:flex-row xl:items-center gap-4 hover:bg-slate-50/70 transition">
+        <div className="max-h-[36rem] overflow-y-auto">
+          <div className="samarth-table-header hidden xl:grid xl:grid-cols-[minmax(0,1.4fr)_24rem_7rem] gap-4 sticky top-0 px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider">
+            <span>Entry Record</span>
+            <span>Metrics</span>
+            <span className="text-right">Actions</span>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {managedEntries.length > 0 ? (
+              managedEntries.map(item => (
+              <div key={item.id} className="samarth-entry-row p-4 flex flex-col xl:grid xl:grid-cols-[minmax(0,1.4fr)_24rem_7rem] xl:items-center gap-4 hover:bg-slate-50/70 transition">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-extrabold ${theme.lightBg} ${theme.primaryText}`}>
@@ -575,7 +582,7 @@ export default function EntryManagementArchive({
 
                 <div className="grid grid-cols-4 gap-2 text-center text-[11px] text-slate-500 xl:w-96">
                   {(['views', 'likes', 'comments', 'shares'] as const).map(metric => (
-                    <div key={metric} className="rounded-lg bg-slate-50 border border-slate-100 px-2 py-1.5">
+                    <div key={metric} className="samarth-entry-metric rounded-lg bg-slate-50 border border-slate-100 px-2 py-1.5">
                       <div className="font-extrabold text-slate-800">{formatCompact(item[metric])}</div>
                       <div className="uppercase tracking-wider text-[9px]">{metricLabels[metric]}</div>
                     </div>
@@ -616,14 +623,15 @@ export default function EntryManagementArchive({
                   )}
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="py-12 text-center text-xs text-slate-400">
-              {managementView === 'active'
-                ? 'No active uploaded entries match the current filters.'
-                : `No archived entries from the last ${ARCHIVE_VISIBLE_DAYS} days match the current filters.`}
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="py-12 text-center text-xs text-slate-400">
+                {managementView === 'active'
+                  ? 'No active uploaded entries match the current filters.'
+                  : `No archived entries from the last ${ARCHIVE_VISIBLE_DAYS} days match the current filters.`}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

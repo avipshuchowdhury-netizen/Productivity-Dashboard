@@ -25,7 +25,7 @@ interface Props {
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
 }
 
-const SAMARTH_FULL_FORM = 'Single Admin Managed Analytics Review of Thematic Handles';
+const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
 
 export interface ContributorProfile {
   contributorName: string;
@@ -198,14 +198,14 @@ export default function ContributorPortal({
         };
       default:
         return {
-          primary: '#f73b20',
-          hover: 'hover:bg-[#fbdfd9]',
-          border: 'border-[#f8a4a4] focus:border-[#f73b20]',
-          text: 'text-[#f73b20]',
-          lightBg: 'bg-[#fbdfd9]',
-          headingColor: 'text-[#360802]',
-          buttonBg: 'bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] text-white hover:opacity-90',
-          focusRing: 'focus:ring-[#f73b20]/10'
+          primary: 'var(--palette-accent)',
+          hover: 'hover:bg-[var(--palette-soft)]',
+          border: 'border-[var(--palette-line)] focus:border-[var(--palette-accent)]',
+          text: 'text-[var(--palette-accent)]',
+          lightBg: 'bg-[var(--palette-soft)]',
+          headingColor: 'text-[var(--palette-ink)]',
+          buttonBg: 'samarth-theme-button text-white hover:opacity-90',
+          focusRing: 'focus:ring-[var(--palette-line)]'
         };
     }
   };
@@ -284,7 +284,7 @@ export default function ContributorPortal({
           <div className="p-8 bg-[linear-gradient(135deg,#fbdfd9_0%,#fef5f3_60%,#e6f0ff_100%)] text-[#360802] relative overflow-hidden border-b border-[#f8a4a4]">
             <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#34c771,#477ee9,#fb2d54,#f73b20)]"></div>
             <div className="absolute top-4 right-4 p-2 bg-[#fffaf8] rounded-xl text-[#f73b20] border border-[#f8a4a4] shadow-2xs">
-              <Sparkles className="w-5 h-5 animate-pulse" />
+              <Sparkles className="w-5 h-5" />
             </div>
             
             <span className="text-[10px] uppercase font-mono font-extrabold tracking-widest text-[#6c3a2f] bg-[#fffaf8] border border-[#f8a4a4] px-2.5 py-1 rounded-xl select-none">
@@ -299,10 +299,10 @@ export default function ContributorPortal({
               </p>
             </div>
             <h2 className="text-xl md:text-2xl font-display font-semibold leading-tight mt-5 flex items-center gap-2">
-              <User className="w-6 h-6 text-[#f73b20]" /> Contributor Registration & Onboarding
+              <User className="w-6 h-6 text-[#f73b20]" /> Contributor Registration
             </h2>
             <p className="text-xs text-[#6c3a2f] mt-2 select-none leading-relaxed max-w-xl">
-              Register your profile to automatically pre-fill publish stats, verify metadata, and sync your designated thematic pages.
+              Register your profile to pre-fill publish stats, verify metadata, and sync your designated pages.
             </p>
           </div>
 
@@ -396,7 +396,7 @@ export default function ContributorPortal({
               </span>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-6 py-2.5 bg-[linear-gradient(135deg,#f8a4a4_0%,#f73b20_100%)] hover:opacity-90 text-white font-semibold rounded-2xl transition-all text-xs cursor-pointer select-none"
+                className="flex items-center gap-1.5 px-6 py-2.5 samarth-theme-button hover:opacity-90 text-white font-semibold rounded-2xl transition-all text-xs cursor-pointer select-none"
               >
                 Complete Onboarding <ArrowRight className="w-4 h-4" />
               </button>
@@ -418,10 +418,10 @@ export default function ContributorPortal({
               <ShieldCheck className="w-3.5 h-3.5" /> Security Role: Verified Contributor
             </span>
             <h2 className={`text-xl font-display font-bold ${themeColors.headingColor} mt-2`}>
-              Contributor Content Upload & Configuration Portal
+              Contributor Upload Portal
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Directly sync live handle metrics, save page URLs under administrative Page Names, and log publish proofs.
+              Sync handle metrics, save page URLs, and log publish proofs from one place.
             </p>
           </div>
 
@@ -470,128 +470,165 @@ export default function ContributorPortal({
             </div>
 
             <div className="p-5 space-y-4 text-xs">
-              
-              {/* Form Row 1: Title and Author */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Content Publication Title *</label>
-                  <input
-                    type="text"
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg outline-hidden bg-slate-50 focus:bg-white focus:ring-1 ${themeColors.border} ${themeColors.focusRing}`}
-                    placeholder="Provide a specific descriptive title..."
-                    value={newTitle}
-                    onChange={e => setNewTitle(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Logged By Contributor</label>
-                  <input
-                    type="text"
-                    required
-                    readOnly
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-100 font-bold text-slate-700 outline-hidden focus:outline-hidden ${themeColors.border}`}
-                    value={newAuthor}
-                  />
-                </div>
-              </div>
-
-              {/* Form Row 2: Selection of States and Pages */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                
-                {/* UPGRADE States List precisely as requested */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Target States/Territories</label>
-                  <select
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
-                    value={newState}
-                    onChange={e => setNewState(e.target.value)}
-                  >
-                    {STATES_LIST.map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
-                  </select>
+              <section className="samarth-form-section">
+                <div className="samarth-section-heading">
+                  <span className={`samarth-section-icon ${themeColors.lightBg} ${themeColors.text}`}>
+                    <FileSpreadsheet className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h4>Content Details</h4>
+                    <p>Title and contributor identity for the uploaded record.</p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Social Channel</label>
-                  <select
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden capitalize ${themeColors.border}`}
-                    value={newPlatform}
-                    onChange={e => {
-                      const plat = e.target.value as 'facebook' | 'instagram' | 'youtube';
-                      setNewPlatform(plat);
-                      onChangePlatform(plat);
-                    }}
-                  >
-                    <option value="instagram">Instagram</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="youtube">YouTube</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Content Publication Title *</label>
+                    <input
+                      type="text"
+                      required
+                      className={`w-full px-3 py-2 border rounded-lg outline-hidden bg-slate-50 focus:bg-white focus:ring-1 ${themeColors.border} ${themeColors.focusRing}`}
+                      placeholder="Provide a specific descriptive title..."
+                      value={newTitle}
+                      onChange={e => setNewTitle(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Logged By Contributor</label>
+                    <input
+                      type="text"
+                      required
+                      readOnly
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-100 font-bold text-slate-700 outline-hidden focus:outline-hidden ${themeColors.border}`}
+                      value={newAuthor}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="samarth-form-section">
+                <div className="samarth-section-heading">
+                  <span className={`samarth-section-icon ${themeColors.lightBg} ${themeColors.text}`}>
+                    <Globe className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h4>Targeting and Handle</h4>
+                    <p>Map the post to the active geography, channel, and onboarded page.</p>
+                  </div>
                 </div>
 
-                {/* Page Name & Link attachment integration - locked to onboarded Page Name */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Page Name (Locked to Onboarded profile) *</label>
-                  <input
-                    type="text"
-                    required
-                    readOnly
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-100 font-bold text-slate-700 outline-hidden focus:outline-none ${themeColors.border}`}
-                    value={newPageName}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Target State/Territory</label>
+                    <select
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
+                      value={newState}
+                      onChange={e => setNewState(e.target.value)}
+                    >
+                      {STATES_LIST.map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Social Channel</label>
+                    <select
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden capitalize ${themeColors.border}`}
+                      value={newPlatform}
+                      onChange={e => {
+                        const plat = e.target.value as 'facebook' | 'instagram' | 'youtube';
+                        setNewPlatform(plat);
+                        onChangePlatform(plat);
+                      }}
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="youtube">YouTube</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Page Name (Locked to Onboarded Profile) *</label>
+                    <input
+                      type="text"
+                      required
+                      readOnly
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-100 font-bold text-slate-700 outline-hidden focus:outline-none ${themeColors.border}`}
+                      value={newPageName}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="samarth-form-section">
+                <div className="samarth-section-heading">
+                  <span className={`samarth-section-icon ${themeColors.lightBg} ${themeColors.text}`}>
+                    <ShieldCheck className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h4>Format and Proof</h4>
+                    <p>Classify the creative and attach the live post reference.</p>
+                  </div>
                 </div>
 
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Format Style</label>
+                    <select
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
+                      value={newFormat}
+                      onChange={e => setNewFormat(e.target.value)}
+                    >
+                      <option value="reel">Reel</option>
+                      <option value="creative">Creative</option>
+                      <option value="repackage">Repackage</option>
+                      <option value="carousel">Carousel</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Thematic Sentiment</label>
+                    <select
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
+                      value={newTheme}
+                      onChange={e => setNewTheme(e.target.value as 'positive' | 'negative')}
+                    >
+                      <option value="positive">Positive Theme</option>
+                      <option value="negative">Negative Theme</option>
+                    </select>
+                  </div>
 
-              {/* Form Row 3: Format Style, Theme Dropdown and Proof URLs */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Format Style</label>
-                  <select
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
-                    value={newFormat}
-                    onChange={e => setNewFormat(e.target.value)}
-                  >
-                    <option value="reel">Reel</option>
-                    <option value="creative">Creative</option>
-                    <option value="repackage">Repackage</option>
-                    <option value="carousel">Carousel</option>
-                  </select>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Proof Link / Live Post URL</label>
+                    <input
+                      type="url"
+                      className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
+                      placeholder="e.g., https://instagram.com/p/your-post-id/"
+                      value={proofUrl}
+                      onChange={e => setProofUrl(e.target.value)}
+                    />
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Theme (Thematic Sentiment)</label>
-                  <select
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
-                    value={newTheme}
-                    onChange={e => setNewTheme(e.target.value as 'positive' | 'negative')}
-                  >
-                    <option value="positive">🟢 Positive Theme</option>
-                    <option value="negative">🔴 Negative Theme</option>
-                  </select>
+              </section>
+
+              <section className="samarth-form-section samarth-metric-section">
+                <div className="samarth-section-heading">
+                  <span className={`samarth-section-icon ${themeColors.lightBg} ${themeColors.text}`}>
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h4>Performance Metrics</h4>
+                    <p>Enter absolute values from native platform insights.</p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Proof Link / Live Post URL</label>
-                  <input
-                    type="url"
-                    className={`w-full px-3 py-2 border rounded-lg bg-slate-50 focus:bg-white outline-hidden ${themeColors.border}`}
-                    placeholder="e.g., https://instagram.com/p/your-post-id/"
-                    value={proofUrl}
-                    onChange={e => setProofUrl(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Form Row 4: Metrics Input */}
-              <div className="bg-slate-50/50 p-4 rounded-xl border border-dotted border-slate-200 mt-2">
-                <span className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Publish Performance Metrics</span>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Views Count</label>
                     <input
                       type="number"
+                      min="0"
                       className={`w-full px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
                       placeholder="e.g., 12000"
                       value={newViews}
@@ -602,6 +639,7 @@ export default function ContributorPortal({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Likes</label>
                     <input
                       type="number"
+                      min="0"
                       className={`w-full px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
                       placeholder="e.g., 900"
                       value={newLikes}
@@ -612,6 +650,7 @@ export default function ContributorPortal({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Comments</label>
                     <input
                       type="number"
+                      min="0"
                       className={`w-full px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
                       placeholder="e.g., 45"
                       value={newComments}
@@ -622,6 +661,7 @@ export default function ContributorPortal({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Shares</label>
                     <input
                       type="number"
+                      min="0"
                       className={`w-full px-2.5 py-1.5 border rounded-md outline-hidden focus:bg-white ${themeColors.border}`}
                       placeholder="e.g., 120"
                       value={newShares}
@@ -629,8 +669,7 @@ export default function ContributorPortal({
                     />
                   </div>
                 </div>
-              </div>
-
+              </section>
             </div>
 
             {/* Submission Actions */}
@@ -643,7 +682,7 @@ export default function ContributorPortal({
                 disabled={isSubmitting}
                 className={`flex items-center gap-1.5 px-6 py-2.5 rounded-2xl font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${themeColors.buttonBg}`}
               >
-                {isSubmitting ? 'Syncing...' : 'Upload Performance Metric Log'}
+                {isSubmitting ? 'Syncing...' : 'Upload Metrics'}
               </button>
             </div>
           </form>
@@ -656,7 +695,7 @@ export default function ContributorPortal({
               <Globe className={`w-4 h-4 ${themeColors.text}`} /> Manage Pages and Attach URLs
             </h3>
             <p className="text-[11px] text-slate-500 mt-1 lines-clamp-3">
-              Associate physical page identifiers with their relevant social profile Web page links. High-level dashboard displays draw direct clickable references from here.
+              Map page identifiers to live social profile links for dashboard references.
             </p>
 
             {/* Create dynamic Page & URL relationship form */}
