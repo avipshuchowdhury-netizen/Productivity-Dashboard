@@ -2,8 +2,19 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import type { FieldValue } from 'firebase-admin/firestore';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type { AuditItem } from '../src/types';
+
+export type ApiRequest = {
+  method?: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: unknown;
+};
+
+export type ApiResponse = {
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => ApiResponse;
+  json: (body: unknown) => void;
+};
 
 export type FirebaseWorkspaceUser = {
   uid: string;
@@ -73,7 +84,7 @@ const getFirebaseApp = () => {
 export const getFirebaseAdminAuth = () => getAuth(getFirebaseApp());
 export const getAuditDb = () => getFirestore(getFirebaseApp());
 
-export const setSecureApiHeaders = (res: VercelResponse) => {
+export const setSecureApiHeaders = (res: ApiResponse) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -82,8 +93,8 @@ export const setSecureApiHeaders = (res: VercelResponse) => {
 };
 
 export const authenticateWorkspaceUser = async (
-  req: VercelRequest,
-  res: VercelResponse
+  req: ApiRequest,
+  res: ApiResponse
 ): Promise<FirebaseWorkspaceUser | null> => {
   const authorizationHeader = req.headers.authorization || '';
   const token = typeof authorizationHeader === 'string' && authorizationHeader.startsWith('Bearer ')
@@ -128,7 +139,7 @@ export const authenticateWorkspaceUser = async (
 
 export const requireEntryManager = (
   user: FirebaseWorkspaceUser,
-  res: VercelResponse
+  res: ApiResponse
 ) => {
   if (!user.canManageEntries) {
     res.status(403).json({ error: 'Only avipshu.chowdhury@varaheanalytics.com can edit, archive, restore, or delete entries.' });

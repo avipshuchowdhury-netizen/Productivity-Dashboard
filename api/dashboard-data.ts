@@ -1,5 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
+  type ApiRequest,
+  type ApiResponse,
   authenticateWorkspaceUser,
   getAuditDb,
   setSecureApiHeaders
@@ -11,7 +12,7 @@ type StoredAuditItem = {
   [key: string]: unknown;
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   setSecureApiHeaders(res);
 
   if (req.method !== 'GET') {
