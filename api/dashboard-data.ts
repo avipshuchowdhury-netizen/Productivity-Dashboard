@@ -3,7 +3,7 @@ import {
   authenticateWorkspaceUser,
   getAuditDb,
   setSecureApiHeaders
-} from './_firebaseAdmin';
+} from './_firebaseAdmin.js';
 
 type StoredAuditItem = {
   id: string;

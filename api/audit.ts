@@ -7,7 +7,7 @@ import {
   requireEntryManager,
   setSecureApiHeaders,
   stripUndefined
-} from './_firebaseAdmin';
+} from './_firebaseAdmin.js';
 
 type StoredAuditItem = {
   id: string;
