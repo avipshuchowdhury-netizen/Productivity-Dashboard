@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, LogIn, Moon, ShieldCheck, Sun } from 'lucide-react';
+import { AlertTriangle, LogIn, Moon, Sun } from 'lucide-react';
 
 type AuthScreenProps = {
   displayMode: 'light' | 'dark';
@@ -26,11 +26,7 @@ export default function AuthScreen({
         <div className="grid min-h-[640px] grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="auth-hero relative overflow-hidden p-7 md:p-10 flex flex-col justify-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--palette-accent)]">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Firebase Domain Protected
-              </div>
-              <h1 className="mt-6 font-display text-4xl md:text-5xl font-semibold leading-none text-[var(--text-main)]">
+              <h1 className="font-display text-4xl md:text-5xl font-semibold leading-none text-[var(--text-main)]">
                 SAMARTH
               </h1>
               <p className="mt-3 max-w-xl text-sm md:text-base font-semibold leading-relaxed text-[var(--text-muted)]">
