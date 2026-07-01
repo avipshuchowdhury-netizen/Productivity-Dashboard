@@ -14,6 +14,11 @@ export interface AuditItem {
   theme?: 'positive' | 'negative';
   archivedAt?: string;
   archiveReason?: string;
+  archivedByEmail?: string;
+  createdAt?: string;
+  createdByEmail?: string;
+  updatedAt?: string;
+  updatedByEmail?: string;
 }
 
 export interface DashboardData {

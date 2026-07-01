@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Archive,
   BarChart2, 
+  LogOut,
   Moon,
   RefreshCw, 
   Sun,
@@ -16,28 +17,13 @@ import { DashboardData, AuditItem, SocialPage, DEFAULT_PAGES } from './types';
 import WorkspaceInsights from './components/WorkspaceInsights';
 import ContributorPortal from './components/ContributorPortal';
 import EntryManagementArchive from './components/EntryManagementArchive';
+import AuthScreen from './components/AuthScreen';
+import { useAuth } from './auth/AuthContext';
 
-const AUDIT_STORAGE_KEY = 'samarth_audit_items';
 const MODE_STORAGE_KEY = 'samarth_display_mode';
 const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
 
 type DisplayMode = 'light' | 'dark';
-
-const readLocalAuditItems = (): AuditItem[] => {
-  try {
-    const cached = localStorage.getItem(AUDIT_STORAGE_KEY);
-    if (!cached) return [];
-    const parsed = JSON.parse(cached);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    console.warn('Local audit storage reset');
-    return [];
-  }
-};
-
-const writeLocalAuditItems = (items: AuditItem[]) => {
-  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(items));
-};
 
 const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   ...item,
@@ -53,10 +39,32 @@ const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   page: item.page?.trim() || undefined,
   theme: item.theme === 'negative' ? 'negative' : 'positive',
   archivedAt: item.archivedAt || undefined,
-  archiveReason: item.archiveReason?.trim() || undefined
+  archiveReason: item.archiveReason?.trim() || undefined,
+  archivedByEmail: item.archivedByEmail?.trim() || undefined,
+  createdAt: item.createdAt || undefined,
+  createdByEmail: item.createdByEmail?.trim() || undefined,
+  updatedAt: item.updatedAt || undefined,
+  updatedByEmail: item.updatedByEmail?.trim() || undefined
 });
 
 export default function App() {
+  const {
+    user,
+    isLoading: isAuthLoading,
+    isConfigured: isAuthConfigured,
+    canCreateAccount,
+    canManageEntries,
+    allowedDomain,
+    missingConfig,
+    authError,
+    clearAuthError,
+    signInWithEmail,
+    createAccountWithEmail,
+    signInWithGoogle,
+    signOut,
+    getIdToken
+  } = useAuth();
+
   // Current Selected Tab
   const [activeTab, setActiveTab] = useState<'insights' | 'contributor' | 'management'>('insights');
   
@@ -169,12 +177,31 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const getFirebaseAuthHeaders = async (): Promise<Record<string, string>> => {
+    const token = await getIdToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // Fetch Entire Database on Load
   const fetchDashboardData = async (showSyncIndicator = false) => {
+    if (!user) {
+      setData({ auditItems: [] });
+      setIsLoading(false);
+      setIsSyncing(false);
+      return;
+    }
+
     if (showSyncIndicator) setIsSyncing(true);
     setErrorMessage('');
     try {
-      const response = await fetch("/api/dashboard-data");
+      const response = await fetch("/api/dashboard-data", {
+        headers: await getFirebaseAuthHeaders()
+      });
+      if (response.status === 401 || response.status === 403) {
+        setErrorMessage("Your Firebase session is not authorized for this workspace.");
+        setData({ auditItems: [] });
+        return;
+      }
       if (!response.ok) {
         throw new Error("Server storage unavailable");
       }
@@ -184,7 +211,8 @@ export default function App() {
       });
     } catch (err: any) {
       console.error(err);
-      setData({ auditItems: readLocalAuditItems() });
+      setErrorMessage("Workspace data could not be loaded from the secure API.");
+      setData({ auditItems: [] });
     } finally {
       setIsLoading(false);
       setIsSyncing(false);
@@ -192,28 +220,26 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!isAuthLoading) {
+      fetchDashboardData();
+    }
+  }, [isAuthLoading, user?.uid]);
 
   // API Call Helpers for updating server DB states
 
   // 1. Audit Items
   const handleAddAuditItem = async (item: Omit<AuditItem, 'id'>) => {
-    const localItem: AuditItem = {
-      ...item,
-      id: "aud-" + Date.now(),
-      views: Number(item.views) || 0,
-      likes: Number(item.likes) || 0,
-      comments: Number(item.comments) || 0,
-      shares: Number(item.shares) || 0
-    };
-
     try {
+      const authHeaders = await getFirebaseAuthHeaders();
       const res = await fetch("/api/audit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({ action: "create", item })
       });
+      if (res.status === 401 || res.status === 403) {
+        setErrorMessage("Your Firebase session is not authorized to upload metrics.");
+        throw new Error("Not authorized to upload metrics");
+      }
       if (res.ok) {
         await fetchDashboardData(true);
         return;
@@ -221,23 +247,30 @@ export default function App() {
       throw new Error("Server storage unavailable");
     } catch (e) {
       console.error(e);
-      setData(prev => {
-        const nextAuditItems = [...prev.auditItems, localItem];
-        writeLocalAuditItems(nextAuditItems);
-        return { auditItems: nextAuditItems };
-      });
+      setErrorMessage("Upload failed because the secure API did not accept the entry.");
+      throw e;
     }
   };
 
   const handleUpdateAuditItem = async (item: AuditItem) => {
+    if (!canManageEntries) {
+      setErrorMessage("Only avipshu.chowdhury@varaheanalytics.com can edit entries.");
+      throw new Error("Current user cannot edit entries");
+    }
+
     const normalizedItem = normalizeAuditItem(item);
 
     try {
+      const authHeaders = await getFirebaseAuthHeaders();
       const res = await fetch("/api/audit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({ action: "update", item: normalizedItem })
       });
+      if (res.status === 401 || res.status === 403) {
+        setErrorMessage("Your Firebase session is not authorized to update entries.");
+        throw new Error("Not authorized to update entries");
+      }
       if (res.ok) {
         await fetchDashboardData(true);
         return;
@@ -245,24 +278,28 @@ export default function App() {
       throw new Error("Server storage unavailable");
     } catch (e) {
       console.error(e);
-      setData(prev => {
-        const nextAuditItems = prev.auditItems.map(existing =>
-          existing.id === normalizedItem.id ? normalizedItem : existing
-        );
-        writeLocalAuditItems(nextAuditItems);
-        return { auditItems: nextAuditItems };
-      });
+      setErrorMessage("Update failed because the secure API did not accept the change.");
+      throw e;
     }
   };
 
   const handleArchiveAuditItem = async (id: string) => {
-    const archivedAt = new Date().toISOString();
+    if (!canManageEntries) {
+      setErrorMessage("Only avipshu.chowdhury@varaheanalytics.com can archive or delete entries.");
+      throw new Error("Current user cannot archive entries");
+    }
+
     try {
+      const authHeaders = await getFirebaseAuthHeaders();
       const res = await fetch("/api/audit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({ action: "archive", item: { id, archiveReason: "manual" } })
       });
+      if (res.status === 401 || res.status === 403) {
+        setErrorMessage("Your Firebase session is not authorized to archive entries.");
+        throw new Error("Not authorized to archive entries");
+      }
       if (res.ok) {
         await fetchDashboardData(true);
         return;
@@ -270,13 +307,8 @@ export default function App() {
       throw new Error("Server storage unavailable");
     } catch (e) {
       console.error(e);
-      setData(prev => {
-        const nextAuditItems = prev.auditItems.map(item =>
-          item.id === id ? { ...item, archivedAt, archiveReason: "manual" } : item
-        );
-        writeLocalAuditItems(nextAuditItems);
-        return { auditItems: nextAuditItems };
-      });
+      setErrorMessage("Archive failed because the secure API did not accept the change.");
+      throw e;
     }
   };
 
@@ -299,11 +331,51 @@ export default function App() {
     { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#477ee9] text-white', idleTile: 'bg-[#e6f0ff] text-[#477ee9]' },
     { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#fb2d54] text-white', idleTile: 'bg-[#ffe8f0] text-[#fb2d54]' },
   ] as const;
+  const visibleTabs = canManageEntries ? tabs : tabs.filter(tab => tab.id !== 'management');
   const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
     insights: 'Insights',
     contributor: 'Upload',
     management: 'Manage'
   };
+
+  useEffect(() => {
+    if (!canManageEntries && activeTab === 'management') {
+      setActiveTab('insights');
+    }
+  }, [activeTab, canManageEntries]);
+
+  if (isAuthLoading) {
+    return (
+      <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
+        <div className="flex min-h-[100dvh] w-full items-center justify-center px-4">
+          <div className="rounded-xl border border-[var(--palette-line)] bg-[var(--surface-card)] p-6 text-center shadow-xs">
+            <RefreshCw className="mx-auto h-8 w-8 animate-spin text-[var(--palette-accent)]" />
+            <p className="mt-3 text-sm font-bold text-[var(--text-main)]">Checking Firebase session...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthConfigured || !user) {
+    return (
+      <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
+        <AuthScreen
+          displayMode={displayMode}
+          onToggleDisplayMode={() => setDisplayMode(prev => prev === 'dark' ? 'light' : 'dark')}
+          isConfigured={isAuthConfigured}
+          canCreateAccount={canCreateAccount}
+          allowedDomain={allowedDomain}
+          missingConfig={missingConfig}
+          authError={authError}
+          onClearError={clearAuthError}
+          onSignInWithEmail={signInWithEmail}
+          onCreateAccountWithEmail={createAccountWithEmail}
+          onSignInWithGoogle={signInWithGoogle}
+        />
+      </div>
+    );
+  }
 
   return (
     <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
@@ -318,7 +390,7 @@ export default function App() {
 
         {/* Sidebar Nav Buttons */}
         <nav className="flex-1 flex flex-col gap-3 w-full px-1 mt-2">
-          {tabs.map(tab => {
+          {visibleTabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
             return (
@@ -357,7 +429,7 @@ export default function App() {
         {/* Avatar block */}
         <div className="mt-1 pt-4 border-t border-[var(--palette-line)] w-full flex flex-col items-center">
           <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none shadow-xs ${appTheme.headerText}`}>
-            S
+            {(user.email || 'S').charAt(0).toUpperCase()}
           </div>
         </div>
       </aside>
@@ -391,7 +463,7 @@ export default function App() {
           </div>
 
           <nav className="hidden md:flex lg:hidden items-center justify-center bg-[var(--surface-panel)] border border-[var(--palette-line)] rounded-[200px] p-1 gap-1 shadow-xs">
-            {tabs.map(tab => {
+            {visibleTabs.map(tab => {
               const Icon = tab.icon;
               const isSelected = activeTab === tab.id;
               return (
@@ -424,6 +496,20 @@ export default function App() {
               <span>{displayMode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
 
+            <div className="flex items-center rounded-xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] shadow-xs">
+              {canManageEntries ? 'Entry Manager' : 'Contributor'}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="flex items-center gap-2 rounded-xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] shadow-xs hover:border-[var(--palette-accent)]"
+              title={`Sign out ${user.email || 'current user'}`}
+            >
+              <LogOut className="w-4 h-4 text-[var(--palette-accent)]" />
+              <span>Sign Out</span>
+            </button>
+
             {/* Dynamic score statistic */}
             <div className="text-right hidden md:block rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-1.5">
               <p className="text-[9px] uppercase text-[var(--text-faint)] font-extrabold tracking-widest">Entries</p>
@@ -445,7 +531,7 @@ export default function App() {
 
         {/* Mobile Horizontal Navigation Tabs */}
         <div className="md:hidden mx-4 mt-3 mb-3 flex overflow-x-auto whitespace-nowrap bg-[var(--surface-glass)] border border-[var(--palette-line)] rounded-[200px] p-1 gap-1 select-none z-40 shadow-xs">
-          {tabs.map(tab => {
+          {visibleTabs.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
             return (
@@ -511,7 +597,7 @@ export default function App() {
                 )}
 
                 {/* Entry editing, soft archive, and restore controls */}
-                {activeTab === 'management' && (
+                {activeTab === 'management' && canManageEntries && (
                   <EntryManagementArchive
                     auditItems={data.auditItems}
                     savedPages={savedPages}

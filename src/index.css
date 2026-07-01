@@ -316,6 +316,73 @@
     linear-gradient(135deg, color-mix(in srgb, var(--palette-accent) 10%, var(--surface-card)) 0%, var(--surface-panel) 46%, color-mix(in srgb, var(--sci-cyan) 18%, var(--surface-card)) 100%);
 }
 
+.auth-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--palette-accent) 8%, var(--surface-card)), color-mix(in srgb, var(--sci-cyan) 10%, var(--surface-card)));
+}
+
+.auth-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--palette-accent) 20%, transparent), transparent 34%),
+    radial-gradient(circle at 84% 72%, color-mix(in srgb, var(--sci-cyan) 18%, transparent), transparent 30%),
+    linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, var(--sci-cyan) 10%, transparent) 22px 23px, transparent 23px),
+    linear-gradient(180deg, transparent 0 24px, color-mix(in srgb, var(--palette-accent) 8%, transparent) 24px 25px, transparent 25px);
+  background-size: auto, auto, 78px 78px, 92px 92px;
+  opacity: 0.72;
+}
+
+.auth-hero {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--palette-accent) 14%, var(--surface-panel)), color-mix(in srgb, var(--sci-cyan) 12%, var(--surface-panel))),
+    radial-gradient(circle at 76% 18%, transparent 0 44px, color-mix(in srgb, var(--sci-cyan) 42%, transparent) 45px 46px, transparent 47px 86px, color-mix(in srgb, var(--sci-cyan) 22%, transparent) 87px 88px, transparent 89px);
+  border-right: 1px solid var(--palette-line);
+}
+
+.auth-hero::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  pointer-events: none;
+  border-radius: 8px;
+  background:
+    linear-gradient(var(--sci-cyan), var(--sci-cyan)) left top / 34px 2px no-repeat,
+    linear-gradient(var(--sci-cyan), var(--sci-cyan)) left top / 2px 34px no-repeat,
+    linear-gradient(var(--palette-accent), var(--palette-accent)) right bottom / 34px 2px no-repeat,
+    linear-gradient(var(--palette-accent), var(--palette-accent)) right bottom / 2px 34px no-repeat;
+  opacity: 0.52;
+}
+
+.auth-signal-grid > div {
+  border: 1px solid var(--palette-line);
+  border-radius: 8px;
+  background: var(--surface-glass);
+  padding: 0.85rem;
+}
+
+.auth-signal-grid span {
+  display: block;
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-signal-grid strong {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
 .samarth-command-panel::before {
   content: "";
   position: absolute;
