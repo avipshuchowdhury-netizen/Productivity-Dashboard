@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy } from 'lucide-react';
+import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, FileText } from 'lucide-react';
+import { generateWorkspaceReportPdf } from '../utils/reportExport';
 
 interface Props {
   auditItems: AuditItem[];
   savedPages: SocialPage[];
   activePlatform: 'all' | 'facebook' | 'instagram' | 'youtube';
   onChangePlatform: (p: 'all' | 'facebook' | 'instagram' | 'youtube') => void;
+  canGenerateReport?: boolean;
 }
 
 type TrendMetric = 'views' | 'likes' | 'comments' | 'shares';
@@ -27,7 +29,8 @@ export default function WorkspaceInsights({
   auditItems, 
   savedPages, 
   activePlatform, 
-  onChangePlatform
+  onChangePlatform,
+  canGenerateReport = false
 }: Props) {
   const [selectedMetric, setSelectedMetric] = useState<TrendMetric>('views');
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
@@ -35,6 +38,7 @@ export default function WorkspaceInsights({
   const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null);
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
   const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
+  const [reportNotice, setReportNotice] = useState('');
   const selectedPlatform = activePlatform;
   const setSelectedPlatform = onChangePlatform;
   
@@ -127,7 +131,7 @@ export default function WorkspaceInsights({
     .toUpperCase() || 'C';
 
   // Timeline selection
-  const [selectedTimeline, setSelectedTimeline] = useState<'7d' | '14d' | '30d' | 'custom'>('7d');
+  const [selectedTimeline, setSelectedTimeline] = useState<'7d' | '15d' | '30d' | '90d' | 'custom'>('7d');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
 
@@ -159,23 +163,43 @@ export default function WorkspaceInsights({
   };
 
   const refDate = getReferenceDate();
+  const timelineDays: Partial<Record<typeof selectedTimeline, number>> = {
+    '7d': 7,
+    '15d': 15,
+    '30d': 30,
+    '90d': 90
+  };
+  const timelineLabels: Record<typeof selectedTimeline, string> = {
+    '7d': 'Last 7 days',
+    '15d': 'Last 15 days',
+    '30d': 'Last 30 days',
+    '90d': 'Last 90 days',
+    custom: 'Custom range'
+  };
+  const formatDateLabel = (date: Date) => date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+  const getDateRangeLabel = () => {
+    if (selectedTimeline === 'custom') {
+      if (customStartDate && customEndDate) return `${customStartDate} to ${customEndDate}`;
+      return 'Custom range';
+    }
+    const days = timelineDays[selectedTimeline] || 7;
+    const startDate = new Date(refDate);
+    startDate.setDate(startDate.getDate() - days);
+    return `${formatDateLabel(startDate)} to ${formatDateLabel(refDate)}`;
+  };
 
   // Timeline + State + Page Filter
   const filteredTimelineAndStateData = activeAuditItemsWithDefaults.filter(item => {
     // 1. Timeline filter
     const itemTime = new Date(item.publishedAt).getTime();
     let matchesTimeline = true;
-    if (selectedTimeline === '7d') {
+    if (selectedTimeline !== 'custom') {
       const cutOff = new Date(refDate);
-      cutOff.setDate(cutOff.getDate() - 7);
-      matchesTimeline = itemTime >= cutOff.getTime();
-    } else if (selectedTimeline === '14d') {
-      const cutOff = new Date(refDate);
-      cutOff.setDate(cutOff.getDate() - 14);
-      matchesTimeline = itemTime >= cutOff.getTime();
-    } else if (selectedTimeline === '30d') {
-      const cutOff = new Date(refDate);
-      cutOff.setDate(cutOff.getDate() - 30);
+      cutOff.setDate(cutOff.getDate() - (timelineDays[selectedTimeline] || 7));
       matchesTimeline = itemTime >= cutOff.getTime();
     } else if (selectedTimeline === 'custom') {
       if (customStartDate && customEndDate) {
@@ -289,9 +313,7 @@ export default function WorkspaceInsights({
   const avgViewsPerEntry = activeEntryCount > 0 ? Math.round(totalViews / activeEntryCount) : 0;
   const avgEngagementPerEntry = activeEntryCount > 0 ? Math.round(engagementTotal / activeEntryCount) : 0;
   const commentShareSignal = totalViews > 0 ? ((totalComments + totalShares) / totalViews) * 100 : 0;
-  const selectedTimelineLabel = selectedTimeline === 'custom'
-    ? 'Custom range'
-    : `Last ${selectedTimeline.replace('d', ' days')}`;
+  const selectedTimelineLabel = timelineLabels[selectedTimeline];
 
   // Platform specific counts
   const fbItems = focusedTimelineData.filter(i => i.platform === 'facebook');
@@ -302,6 +324,18 @@ export default function WorkspaceInsights({
   const igViews = igItems.reduce((acc, i) => acc + i.views, 0);
   const ytViews = ytItems.reduce((acc, i) => acc + i.views, 0);
   const totalChannelViews = fbViews + igViews + ytViews;
+  const platformBreakdown = ([
+    ['facebook', fbItems],
+    ['instagram', igItems],
+    ['youtube', ytItems]
+  ] as const).map(([platform, items]) => ({
+    platform,
+    entries: items.length,
+    views: items.reduce((acc, item) => acc + item.views, 0),
+    likes: items.reduce((acc, item) => acc + item.likes, 0),
+    comments: items.reduce((acc, item) => acc + item.comments, 0),
+    shares: items.reduce((acc, item) => acc + item.shares, 0)
+  }));
 
   // Prepare daily trends for SVG chart
   const uniqueDates = Array.from(new Set(focusedTimelineData.map(item => item.publishedAt))).sort();
@@ -338,6 +372,57 @@ export default function WorkspaceInsights({
     if (index === 2) return '#34c771';
     return '#fb2d54';
   };
+  const handleGenerateReport = () => {
+    const reportOpened = generateWorkspaceReportPdf({
+      generatedAt: new Date().toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      dateRangeLabel: getDateRangeLabel(),
+      filters: {
+        timeline: selectedTimelineLabel,
+        state: selectedState,
+        page: selectedPage,
+        contributor: contributorFilterValue,
+        platform: selectedPlatform === 'all' ? 'All platforms' : platformLabels[selectedPlatform]
+      },
+      metrics: {
+        entries: activeEntryCount,
+        views: totalViews,
+        likes: totalLikes,
+        comments: totalComments,
+        shares: totalShares,
+        engagement: engagementTotal,
+        avgViews: avgViewsPerEntry,
+        actionSignalRate: commentShareSignal
+      },
+      platformBreakdown,
+      contributors: rankedAuthorStats.map(author => ({
+        name: author.name,
+        count: author.count,
+        views: author.views,
+        likes: author.likes,
+        comments: author.comments,
+        shares: author.shares
+      })),
+      topPosts: [...focusedTimelineData].sort((a, b) => b.views - a.views),
+      trendData: chartData.map(point => ({
+        date: point.fullDate,
+        views: point.views,
+        likes: point.likes,
+        comments: point.comments,
+        shares: point.shares,
+        posts: point.posts
+      }))
+    });
+
+    setReportNotice(reportOpened
+      ? 'Report opened. Use Save as PDF in the print dialog.'
+      : 'Popup blocked. Allow popups for this site to generate the PDF.');
+  };
 
   return (
     <div id="workspace-insights" className="space-y-6">
@@ -368,8 +453,9 @@ export default function WorkspaceInsights({
             <div className="flex bg-slate-100 p-1 rounded-lg gap-0.5 border border-slate-200">
               {([
                 { id: '7d', label: '7D' },
-                { id: '14d', label: '14D' },
+                { id: '15d', label: '15D' },
                 { id: '30d', label: '30D' },
+                { id: '90d', label: '90D' },
                 { id: 'custom', label: 'Custom' }
               ] as const).map(t => (
                 <button
@@ -385,8 +471,24 @@ export default function WorkspaceInsights({
                 </button>
               ))}
             </div>
+            {canGenerateReport && (
+              <button
+                type="button"
+                onClick={handleGenerateReport}
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-bold text-[var(--palette-ink)] shadow-xs transition hover:border-[var(--palette-accent)]"
+              >
+                <FileText className="h-4 w-4 text-[var(--palette-accent)]" />
+                Generate PDF
+              </button>
+            )}
           </div>
         </div>
+
+        {reportNotice && (
+          <div className="self-start rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-bold text-[var(--text-muted)]">
+            {reportNotice}
+          </div>
+        )}
 
         {/* Custom date range display if 'custom' is active */}
         {selectedTimeline === 'custom' && (

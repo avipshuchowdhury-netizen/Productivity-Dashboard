@@ -19,11 +19,19 @@ import ContributorPortal from './components/ContributorPortal';
 import EntryManagementArchive from './components/EntryManagementArchive';
 import AuthScreen from './components/AuthScreen';
 import { useAuth } from './auth/AuthContext';
+import { SAMPLE_AUDIT_ITEMS, SAMPLE_PAGES } from './sampleData';
 
 const MODE_STORAGE_KEY = 'samarth_display_mode';
 const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
+const SAMPLE_PREVIEW_EMAIL = 'avipshu.chowdhury@varaheanalytics.com';
 
 type DisplayMode = 'light' | 'dark';
+
+const isLocalSamplePreviewEnabled = () => {
+  if (typeof window === 'undefined') return false;
+  const localHosts = ['localhost', '127.0.0.1', '::1'];
+  return localHosts.includes(window.location.hostname) && new URLSearchParams(window.location.search).get('sample') === '1';
+};
 
 const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   ...item,
@@ -60,6 +68,9 @@ export default function App() {
     signOut,
     getIdToken
   } = useAuth();
+  const isLocalSamplePreview = isLocalSamplePreviewEnabled();
+  const currentUserEmail = isLocalSamplePreview ? SAMPLE_PREVIEW_EMAIL : user?.email || '';
+  const hasEntryManagementAccess = isLocalSamplePreview || canManageEntries;
 
   // Current Selected Tab
   const [activeTab, setActiveTab] = useState<'insights' | 'contributor' | 'management'>('insights');
@@ -82,6 +93,10 @@ export default function App() {
 
   // Pages are configured through contributor onboarding or manual page mapping.
   const [savedPages, setSavedPages] = useState<SocialPage[]>(() => {
+    if (isLocalSamplePreview) {
+      return SAMPLE_PAGES;
+    }
+
     const cached = localStorage.getItem('samarth_saved_pages');
     if (cached) {
       try {
@@ -106,8 +121,9 @@ export default function App() {
   });
 
   useEffect(() => {
+    if (isLocalSamplePreview) return;
     localStorage.setItem('samarth_saved_pages', JSON.stringify(savedPages));
-  }, [savedPages]);
+  }, [isLocalSamplePreview, savedPages]);
 
   useEffect(() => {
     localStorage.setItem(MODE_STORAGE_KEY, displayMode);
@@ -167,19 +183,30 @@ export default function App() {
   
   // Database States
   const [data, setData] = useState<DashboardData>({
-    auditItems: []
+    auditItems: isLocalSamplePreview ? SAMPLE_AUDIT_ITEMS : []
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isLocalSamplePreview);
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const getFirebaseAuthHeaders = async (): Promise<Record<string, string>> => {
+    if (isLocalSamplePreview) return {};
     const token = await getIdToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   // Fetch Entire Database on Load
   const fetchDashboardData = async (showSyncIndicator = false) => {
+    if (isLocalSamplePreview) {
+      if (showSyncIndicator) setIsSyncing(true);
+      setErrorMessage('');
+      setData({ auditItems: SAMPLE_AUDIT_ITEMS });
+      setSavedPages(SAMPLE_PAGES);
+      setIsLoading(false);
+      setIsSyncing(false);
+      return;
+    }
+
     if (!user) {
       setData({ auditItems: [] });
       setIsLoading(false);
@@ -219,12 +246,32 @@ export default function App() {
     if (!isAuthLoading) {
       fetchDashboardData();
     }
-  }, [isAuthLoading, user?.uid]);
+  }, [isAuthLoading, isLocalSamplePreview, user?.uid]);
 
   // API Call Helpers for updating server DB states
 
   // 1. Audit Items
   const handleAddAuditItem = async (item: Omit<AuditItem, 'id'>) => {
+    if (isLocalSamplePreview) {
+      const now = new Date().toISOString();
+      setData(prev => ({
+        auditItems: [
+          {
+            ...normalizeAuditItem({
+              ...item,
+              id: `sample-created-${Date.now()}`,
+              createdAt: now,
+              createdByEmail: currentUserEmail,
+              updatedAt: now,
+              updatedByEmail: currentUserEmail
+            } as AuditItem)
+          },
+          ...prev.auditItems
+        ]
+      }));
+      return;
+    }
+
     try {
       const authHeaders = await getFirebaseAuthHeaders();
       const res = await fetch("/api/audit", {
@@ -249,12 +296,26 @@ export default function App() {
   };
 
   const handleUpdateAuditItem = async (item: AuditItem) => {
-    if (!canManageEntries) {
+    if (!hasEntryManagementAccess) {
       setErrorMessage("Only avipshu.chowdhury@varaheanalytics.com can edit entries.");
       throw new Error("Current user cannot edit entries");
     }
 
     const normalizedItem = normalizeAuditItem(item);
+
+    if (isLocalSamplePreview) {
+      const now = new Date().toISOString();
+      setData(prev => ({
+        auditItems: prev.auditItems.map(existingItem => existingItem.id === normalizedItem.id
+          ? {
+              ...normalizedItem,
+              updatedAt: now,
+              updatedByEmail: currentUserEmail
+            }
+          : existingItem)
+      }));
+      return;
+    }
 
     try {
       const authHeaders = await getFirebaseAuthHeaders();
@@ -280,9 +341,26 @@ export default function App() {
   };
 
   const handleArchiveAuditItem = async (id: string) => {
-    if (!canManageEntries) {
+    if (!hasEntryManagementAccess) {
       setErrorMessage("Only avipshu.chowdhury@varaheanalytics.com can archive or delete entries.");
       throw new Error("Current user cannot archive entries");
+    }
+
+    if (isLocalSamplePreview) {
+      const now = new Date().toISOString();
+      setData(prev => ({
+        auditItems: prev.auditItems.map(item => item.id === id
+          ? {
+              ...item,
+              archivedAt: now,
+              archiveReason: 'manual',
+              archivedByEmail: currentUserEmail,
+              updatedAt: now,
+              updatedByEmail: currentUserEmail
+            }
+          : item)
+      }));
+      return;
     }
 
     try {
@@ -327,7 +405,7 @@ export default function App() {
     { id: 'contributor', label: 'Data Upload', icon: Upload, iconTile: 'bg-[#477ee9] text-white', idleTile: 'bg-[#e6f0ff] text-[#477ee9]' },
     { id: 'management', label: 'Entry Management', icon: Archive, iconTile: 'bg-[#fb2d54] text-white', idleTile: 'bg-[#ffe8f0] text-[#fb2d54]' },
   ] as const;
-  const visibleTabs = canManageEntries ? tabs : tabs.filter(tab => tab.id !== 'management');
+  const visibleTabs = hasEntryManagementAccess ? tabs : tabs.filter(tab => tab.id !== 'management');
   const shortTabLabels: Record<typeof tabs[number]['id'], string> = {
     insights: 'Insights',
     contributor: 'Upload',
@@ -335,12 +413,12 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!canManageEntries && activeTab === 'management') {
+    if (!hasEntryManagementAccess && activeTab === 'management') {
       setActiveTab('insights');
     }
-  }, [activeTab, canManageEntries]);
+  }, [activeTab, hasEntryManagementAccess]);
 
-  if (isAuthLoading) {
+  if (!isLocalSamplePreview && isAuthLoading) {
     return (
       <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
         <div className="flex min-h-[100dvh] w-full items-center justify-center px-4">
@@ -353,7 +431,7 @@ export default function App() {
     );
   }
 
-  if (!isAuthConfigured || !user) {
+  if (!isLocalSamplePreview && (!isAuthConfigured || !user)) {
     return (
       <div id="full-app-root" data-mode={displayMode} className="min-h-[100dvh] flex font-sans text-[#360802] overflow-x-hidden isolate">
         <AuthScreen
@@ -421,7 +499,7 @@ export default function App() {
         {/* Avatar block */}
         <div className="mt-1 pt-4 border-t border-[var(--palette-line)] w-full flex flex-col items-center">
           <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center font-bold text-xs select-none shadow-xs ${appTheme.headerText}`}>
-            {(user.email || 'S').charAt(0).toUpperCase()}
+            {(currentUserEmail || 'S').charAt(0).toUpperCase()}
           </div>
         </div>
       </aside>
@@ -489,17 +567,23 @@ export default function App() {
             </button>
 
             <div className="flex items-center rounded-xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] shadow-xs">
-              {canManageEntries ? 'Entry Manager' : 'Contributor'}
+              {hasEntryManagementAccess ? 'Entry Manager' : 'Contributor'}
             </div>
 
             <button
               type="button"
-              onClick={() => signOut()}
+              onClick={() => {
+                if (isLocalSamplePreview) {
+                  window.location.href = window.location.pathname;
+                  return;
+                }
+                signOut();
+              }}
               className="flex items-center gap-2 rounded-xl border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] shadow-xs hover:border-[var(--palette-accent)]"
-              title={`Sign out ${user.email || 'current user'}`}
+              title={isLocalSamplePreview ? 'Exit sample preview' : `Sign out ${currentUserEmail || 'current user'}`}
             >
               <LogOut className="w-4 h-4 text-[var(--palette-accent)]" />
-              <span>Sign Out</span>
+              <span>{isLocalSamplePreview ? 'Exit Sample' : 'Sign Out'}</span>
             </button>
 
             {/* Dynamic score statistic */}
@@ -573,6 +657,7 @@ export default function App() {
                     savedPages={savedPages}
                     activePlatform={activePlatform}
                     onChangePlatform={setActivePlatform}
+                    canGenerateReport={hasEntryManagementAccess}
                   />
                 )}
 
@@ -589,7 +674,7 @@ export default function App() {
                 )}
 
                 {/* Entry editing, soft archive, and restore controls */}
-                {activeTab === 'management' && canManageEntries && (
+                {activeTab === 'management' && hasEntryManagementAccess && (
                   <EntryManagementArchive
                     auditItems={data.auditItems}
                     savedPages={savedPages}
