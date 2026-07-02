@@ -15,6 +15,7 @@ import {
   Sparkles,
   ArrowRight
 } from 'lucide-react';
+import { cleanExternalUrl, inferSocialPageUrls } from '../utils/socialLinks';
 
 interface Props {
   savedPages: SocialPage[];
@@ -142,7 +143,10 @@ export default function ContributorPortal({
     // Sync saved pages immediately so it is available globally under administrative lists
     onAddPage({
       name: profile.pageName,
-      url: profile.instagramUrl || profile.facebookUrl || profile.youtubeUrl
+      url: profile.instagramUrl || profile.facebookUrl || profile.youtubeUrl,
+      facebookUrl: profile.facebookUrl,
+      instagramUrl: profile.instagramUrl,
+      youtubeUrl: profile.youtubeUrl
     });
   };
 
@@ -215,7 +219,10 @@ export default function ContributorPortal({
   const handleCreatePageConfig = (e: React.FormEvent) => {
     e.preventDefault();
     if (!configPageName.trim() || !configPageUrl.trim()) return;
-    onAddPage({ name: configPageName.trim(), url: configPageUrl.trim() });
+    onAddPage({
+      name: configPageName.trim(),
+      ...inferSocialPageUrls(configPageUrl)
+    });
     
     // Automatically select newly created page name on upload context
     setNewPageName(configPageName.trim());
@@ -233,11 +240,25 @@ export default function ContributorPortal({
       finalPageName = newPageName.trim();
       // Add custom page to pages list automatically if custom specified
       if (!savedPages.some(p => p.name.toLowerCase() === finalPageName.toLowerCase())) {
-        onAddPage({ name: finalPageName, url: newPageLink.trim() || 'https://socialmedia.example.com/' + encodeURIComponent(finalPageName) });
+        onAddPage({
+          name: finalPageName,
+          ...inferSocialPageUrls(newPageLink.trim() || 'https://socialmedia.example.com/' + encodeURIComponent(finalPageName))
+        });
       }
     } else if (!finalPageName && savedPages.length > 0) {
       finalPageName = savedPages[0].name;
     }
+
+    const selectedPageUrl = cleanExternalUrl(newPageLink);
+    const onboardPageLinks = {
+      facebook: cleanExternalUrl(onboardProfile?.facebookUrl),
+      instagram: cleanExternalUrl(onboardProfile?.instagramUrl),
+      youtube: cleanExternalUrl(onboardProfile?.youtubeUrl)
+    };
+    const pageLinks = {
+      ...onboardPageLinks,
+      [newPlatform]: selectedPageUrl || onboardPageLinks[newPlatform]
+    };
 
     setIsSubmitting(true);
     try {
@@ -253,6 +274,9 @@ export default function ContributorPortal({
         author: newAuthor,
         state: newState,
         page: finalPageName,
+        proofUrl: cleanExternalUrl(proofUrl) || undefined,
+        pageUrl: selectedPageUrl || undefined,
+        pageLinks: Object.values(pageLinks).some(Boolean) ? pageLinks : undefined,
         theme: newTheme
       });
 

@@ -161,6 +161,28 @@ const clampNumber = (value: unknown, max = 1_000_000_000) => {
   return Math.min(Math.floor(numericValue), max);
 };
 
+const clampUrl = (value: unknown) => {
+  const text = clampText(value, "", 700);
+  if (!text) return undefined;
+
+  try {
+    const url = new URL(text);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizePlatformLinks = (links: any) => {
+  const normalized = {
+    facebook: clampUrl(links?.facebook),
+    instagram: clampUrl(links?.instagram),
+    youtube: clampUrl(links?.youtube)
+  };
+
+  return Object.values(normalized).some(Boolean) ? normalized : undefined;
+};
+
 const requireEntryManager = (req: Request, res: Response) => {
   const user = (req as AuthenticatedRequest).firebaseUser;
   if (!user?.canManageEntries) {
@@ -223,6 +245,9 @@ app.post("/api/audit", requireFirebaseAuth, (req, res) => {
     author: clampText(record.author || "Unknown Contributor", "Unknown Contributor", 120),
     state: record.state ? clampText(record.state, "", 80) : undefined,
     page: record.page ? clampText(record.page, "", 140) : undefined,
+    proofUrl: clampUrl(record.proofUrl),
+    pageUrl: clampUrl(record.pageUrl),
+    pageLinks: normalizePlatformLinks(record.pageLinks),
     theme: record.theme === "negative" ? "negative" : "positive",
     archivedAt: record.archivedAt ? clampText(record.archivedAt, "", 40) : undefined,
     archiveReason: record.archiveReason ? clampText(record.archiveReason, "", 80) : undefined,

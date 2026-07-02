@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
 import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, FileText } from 'lucide-react';
 import { generateWorkspaceReportPdf } from '../utils/reportExport';
+import { socialPageUrlForPlatform } from '../utils/socialLinks';
 
 interface Props {
   auditItems: AuditItem[];
@@ -372,6 +373,21 @@ export default function WorkspaceInsights({
     if (index === 2) return '#34c771';
     return '#fb2d54';
   };
+  const selectedPageLinks = selectedPage !== 'All Pages'
+    ? savedPages.find(page => page.name === selectedPage)
+    : undefined;
+  const selectedPagePlatformLinks = selectedPageLinks
+    ? ([
+        ['facebook', socialPageUrlForPlatform(selectedPageLinks, 'facebook')],
+        ['instagram', socialPageUrlForPlatform(selectedPageLinks, 'instagram')],
+        ['youtube', socialPageUrlForPlatform(selectedPageLinks, 'youtube')]
+      ] as const).filter(([, url]) => Boolean(url))
+    : [];
+  const activeSelectedPageLink = selectedPageLinks
+    ? selectedPlatform === 'all'
+      ? selectedPagePlatformLinks[0]?.[1] || selectedPageLinks.url
+      : socialPageUrlForPlatform(selectedPageLinks, selectedPlatform)
+    : '';
   const handleGenerateReport = () => {
     const reportOpened = generateWorkspaceReportPdf({
       generatedAt: new Date().toLocaleString('en-IN', {
@@ -416,7 +432,8 @@ export default function WorkspaceInsights({
         comments: point.comments,
         shares: point.shares,
         posts: point.posts
-      }))
+      })),
+      savedPages
     });
 
     setReportNotice(reportOpened
@@ -550,22 +567,18 @@ export default function WorkspaceInsights({
             </div>
             {selectedPage !== 'All Pages' && (
               <div className="text-[10px] self-end font-semibold flex items-center gap-1 mt-0.5">
-                {(() => {
-                  const matchingPage = savedPages.find(p => p.name === selectedPage);
-                  if (matchingPage?.url) {
-                    return (
-                      <a 
-                        href={matchingPage.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className={`${theme.primaryText} flex items-center gap-0.5 hover:underline`}
-                      >
-                        Visit Page: <span className="underline max-w-[150px] truncate">{matchingPage.url}</span> <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
-                      </a>
-                    );
-                  }
-                  return <span className="text-slate-400">No URL link attached</span>;
-                })()}
+                {activeSelectedPageLink ? (
+                  <a
+                    href={activeSelectedPageLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${theme.primaryText} flex items-center gap-0.5 hover:underline`}
+                  >
+                    Visit Page: <span className="underline max-w-[150px] truncate">{activeSelectedPageLink}</span> <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
+                  </a>
+                ) : (
+                  <span className="text-slate-400">No URL link attached</span>
+                )}
               </div>
             )}
           </div>

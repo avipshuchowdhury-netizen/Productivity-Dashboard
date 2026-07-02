@@ -1,15 +1,23 @@
 import type { AuditItem, SocialPage } from './types';
 
 export const SAMPLE_PAGES: SocialPage[] = [
-  { name: 'SAMARTH National Desk', url: 'https://instagram.com/samarthnational' },
-  { name: 'UP Development Watch', url: 'https://facebook.com/updevelopmentwatch' },
-  { name: 'Youth Connect India', url: 'https://youtube.com/@youthconnectindia' },
-  { name: 'Policy Pulse', url: 'https://instagram.com/policypulse' },
-  { name: 'Jan Samvad Live', url: 'https://facebook.com/jansamvadlive' },
-  { name: 'Bharat Narrative Lab', url: 'https://youtube.com/@bharatnarrativelab' }
+  { name: 'SAMARTH National Desk', url: 'https://instagram.com/samarthnational', facebookUrl: 'https://facebook.com/samarthnational', instagramUrl: 'https://instagram.com/samarthnational', youtubeUrl: 'https://youtube.com/@samarthnational' },
+  { name: 'UP Development Watch', url: 'https://facebook.com/updevelopmentwatch', facebookUrl: 'https://facebook.com/updevelopmentwatch', instagramUrl: 'https://instagram.com/updevelopmentwatch', youtubeUrl: 'https://youtube.com/@updevelopmentwatch' },
+  { name: 'Youth Connect India', url: 'https://youtube.com/@youthconnectindia', facebookUrl: 'https://facebook.com/youthconnectindia', instagramUrl: 'https://instagram.com/youthconnectindia', youtubeUrl: 'https://youtube.com/@youthconnectindia' },
+  { name: 'Policy Pulse', url: 'https://instagram.com/policypulse', facebookUrl: 'https://facebook.com/policypulse', instagramUrl: 'https://instagram.com/policypulse', youtubeUrl: 'https://youtube.com/@policypulse' },
+  { name: 'Jan Samvad Live', url: 'https://facebook.com/jansamvadlive', facebookUrl: 'https://facebook.com/jansamvadlive', instagramUrl: 'https://instagram.com/jansamvadlive', youtubeUrl: 'https://youtube.com/@jansamvadlive' },
+  { name: 'Bharat Narrative Lab', url: 'https://youtube.com/@bharatnarrativelab', facebookUrl: 'https://facebook.com/bharatnarrativelab', instagramUrl: 'https://instagram.com/bharatnarrativelab', youtubeUrl: 'https://youtube.com/@bharatnarrativelab' }
 ];
 
-export const SAMPLE_AUDIT_ITEMS: AuditItem[] = [
+const samplePageByName = Object.fromEntries(SAMPLE_PAGES.map(page => [page.name, page]));
+
+const sampleProofUrl = (platform: AuditItem['platform'], id: string) => {
+  if (platform === 'facebook') return `https://facebook.com/samarth/posts/${id}`;
+  if (platform === 'youtube') return `https://youtube.com/watch?v=${id}`;
+  return `https://instagram.com/p/${id}/`;
+};
+
+export const SAMPLE_AUDIT_ITEMS: AuditItem[] = ([
   {
     id: 'sample-001',
     title: 'Metro extension explainer reel',
@@ -302,4 +310,20 @@ export const SAMPLE_AUDIT_ITEMS: AuditItem[] = [
     createdAt: '2026-06-14T09:00:00.000Z',
     createdByEmail: 'dev.singh@varaheanalytics.com'
   }
-];
+] as AuditItem[]).map(item => {
+  const page = samplePageByName[item.page || ''];
+  const pageLinks = page
+    ? {
+        facebook: page.facebookUrl,
+        instagram: page.instagramUrl,
+        youtube: page.youtubeUrl
+      }
+    : undefined;
+
+  return {
+    ...item,
+    proofUrl: sampleProofUrl(item.platform, item.id),
+    pageUrl: pageLinks?.[item.platform],
+    pageLinks
+  };
+});

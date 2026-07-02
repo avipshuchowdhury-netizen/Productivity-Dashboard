@@ -20,6 +20,7 @@ import EntryManagementArchive from './components/EntryManagementArchive';
 import AuthScreen from './components/AuthScreen';
 import { useAuth } from './auth/AuthContext';
 import { SAMPLE_AUDIT_ITEMS, SAMPLE_PAGES } from './sampleData';
+import { cleanExternalUrl } from './utils/socialLinks';
 
 const MODE_STORAGE_KEY = 'samarth_display_mode';
 const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
@@ -45,6 +46,15 @@ const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   author: item.author.trim() || 'Unknown Contributor',
   state: item.state?.trim() || undefined,
   page: item.page?.trim() || undefined,
+  proofUrl: cleanExternalUrl(item.proofUrl) || undefined,
+  pageUrl: cleanExternalUrl(item.pageUrl) || undefined,
+  pageLinks: item.pageLinks && Object.values(item.pageLinks).some(Boolean)
+    ? {
+        facebook: cleanExternalUrl(item.pageLinks.facebook) || undefined,
+        instagram: cleanExternalUrl(item.pageLinks.instagram) || undefined,
+        youtube: cleanExternalUrl(item.pageLinks.youtube) || undefined
+      }
+    : undefined,
   theme: item.theme === 'negative' ? 'negative' : 'positive',
   archivedAt: item.archivedAt || undefined,
   archiveReason: item.archiveReason?.trim() || undefined,
@@ -387,11 +397,30 @@ export default function App() {
   };
 
   const handleAddPage = (page: SocialPage) => {
+    const normalizedPage: SocialPage = {
+      ...page,
+      name: page.name.trim(),
+      url: cleanExternalUrl(page.url),
+      facebookUrl: cleanExternalUrl(page.facebookUrl) || undefined,
+      instagramUrl: cleanExternalUrl(page.instagramUrl) || undefined,
+      youtubeUrl: cleanExternalUrl(page.youtubeUrl) || undefined
+    };
+
+    if (!normalizedPage.name || !normalizedPage.url) return;
+
     setSavedPages(prev => {
-      if (prev.some(p => p.name.toLowerCase() === page.name.toLowerCase())) {
-        return prev.map(p => p.name.toLowerCase() === page.name.toLowerCase() ? page : p);
+      if (prev.some(p => p.name.toLowerCase() === normalizedPage.name.toLowerCase())) {
+        return prev.map(p => p.name.toLowerCase() === normalizedPage.name.toLowerCase()
+          ? {
+              ...p,
+              ...normalizedPage,
+              facebookUrl: normalizedPage.facebookUrl || p.facebookUrl,
+              instagramUrl: normalizedPage.instagramUrl || p.instagramUrl,
+              youtubeUrl: normalizedPage.youtubeUrl || p.youtubeUrl
+            }
+          : p);
       }
-      return [...prev, page];
+      return [...prev, normalizedPage];
     });
   };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Archive, ExternalLink, Globe, MapPin, Pencil, RotateCcw, Save, Users, X } from 'lucide-react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
+import { auditItemPageUrl, auditItemPostUrl, cleanExternalUrl, socialPageUrlForPlatform } from '../utils/socialLinks';
 
 interface Props {
   auditItems: AuditItem[];
@@ -161,6 +162,21 @@ export default function EntryManagementArchive({
   const editPageOptions = editDraft?.page && !currentPagesList.includes(editDraft.page)
     ? [editDraft.page, ...currentPagesList]
     : currentPagesList;
+  const selectedPageLinks = selectedPage !== 'All Pages'
+    ? savedPages.find(page => page.name === selectedPage)
+    : undefined;
+  const selectedPagePlatformLinks = selectedPageLinks
+    ? ([
+        ['facebook', socialPageUrlForPlatform(selectedPageLinks, 'facebook')],
+        ['instagram', socialPageUrlForPlatform(selectedPageLinks, 'instagram')],
+        ['youtube', socialPageUrlForPlatform(selectedPageLinks, 'youtube')]
+      ] as const).filter(([, url]) => Boolean(url))
+    : [];
+  const activeSelectedPageLink = selectedPageLinks
+    ? selectedPlatform === 'all'
+      ? selectedPagePlatformLinks[0]?.[1] || selectedPageLinks.url
+      : socialPageUrlForPlatform(selectedPageLinks, selectedPlatform)
+    : '';
 
   const beginEditEntry = (item: AuditItem) => {
     setEditDraft({ ...item });
@@ -187,8 +203,17 @@ export default function EntryManagementArchive({
       shares: Number(editDraft.shares) || 0,
       state: editDraft.state?.trim() || undefined,
       page: editDraft.page?.trim() || undefined,
+      proofUrl: cleanExternalUrl(editDraft.proofUrl) || undefined,
+      pageUrl: cleanExternalUrl(editDraft.pageUrl) || undefined,
+      pageLinks: {
+        ...editDraft.pageLinks,
+        [editDraft.platform]: cleanExternalUrl(editDraft.pageUrl) || editDraft.pageLinks?.[editDraft.platform]
+      },
       theme: editDraft.theme === 'negative' ? 'negative' : 'positive'
     };
+    if (!Object.values(normalizedDraft.pageLinks || {}).some(Boolean)) {
+      normalizedDraft.pageLinks = undefined;
+    }
 
     if (!normalizedDraft.title) {
       setEntryNotice('Title is required before saving this entry.');
@@ -319,22 +344,18 @@ export default function EntryManagementArchive({
             </div>
             {selectedPage !== 'All Pages' && (
               <div className="text-[10px] self-end font-semibold flex items-center gap-1 mt-0.5">
-                {(() => {
-                  const matchingPage = savedPages.find(p => p.name === selectedPage);
-                  if (matchingPage?.url) {
-                    return (
-                      <a
-                        href={matchingPage.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${theme.primaryText} flex items-center gap-0.5 hover:underline`}
-                      >
-                        Visit Page: <span className="underline max-w-[150px] truncate">{matchingPage.url}</span> <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
-                      </a>
-                    );
-                  }
-                  return <span className="text-slate-400">No URL link attached</span>;
-                })()}
+                {activeSelectedPageLink ? (
+                  <a
+                    href={activeSelectedPageLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${theme.primaryText} flex items-center gap-0.5 hover:underline`}
+                  >
+                    Visit Page: <span className="underline max-w-[150px] truncate">{activeSelectedPageLink}</span> <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
+                  </a>
+                ) : (
+                  <span className="text-slate-400">No URL link attached</span>
+                )}
               </div>
             )}
           </div>
@@ -526,6 +547,35 @@ export default function EntryManagementArchive({
               ))}
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Live Post URL</span>
+                <input
+                  type="url"
+                  value={editDraft.proofUrl || ''}
+                  onChange={e => updateEditDraft({ proofUrl: e.target.value })}
+                  placeholder="https://instagram.com/p/post-id/"
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                />
+              </label>
+              <label>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Page URL for Selected Channel</span>
+                <input
+                  type="url"
+                  value={editDraft.pageUrl || editDraft.pageLinks?.[editDraft.platform] || ''}
+                  onChange={e => updateEditDraft({
+                    pageUrl: e.target.value,
+                    pageLinks: {
+                      ...editDraft.pageLinks,
+                      [editDraft.platform]: e.target.value
+                    }
+                  })}
+                  placeholder="https://facebook.com/page-name"
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 outline-hidden ${theme.primaryBorder}`}
+                />
+              </label>
+            </div>
+
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               <button
                 type="button"
@@ -557,6 +607,11 @@ export default function EntryManagementArchive({
               managedEntries.map(item => (
               <div key={item.id} className="samarth-entry-row p-4 flex flex-col xl:grid xl:grid-cols-[minmax(0,1.4fr)_24rem_7rem] xl:items-center gap-4 hover:bg-slate-50/70 transition">
                 <div className="min-w-0 flex-1">
+                  {(() => {
+                    const postUrl = auditItemPostUrl(item);
+                    const pageUrl = auditItemPageUrl(item, savedPages);
+                    return (
+                      <>
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-extrabold ${theme.lightBg} ${theme.primaryText}`}>
                       {platformLabels[item.platform]}
@@ -569,15 +624,42 @@ export default function EntryManagementArchive({
                       </span>
                     )}
                   </div>
-                  <div className="font-bold text-sm text-slate-800 truncate" title={item.title}>{item.title}</div>
+                  {postUrl ? (
+                    <a
+                      href={postUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-sm text-slate-800 truncate inline-flex max-w-full items-center gap-1 hover:text-[var(--palette-accent)] hover:underline"
+                      title={item.title}
+                    >
+                      <span className="truncate">{item.title}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  ) : (
+                    <div className="font-bold text-sm text-slate-800 truncate" title={item.title}>{item.title}</div>
+                  )}
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
                     <span>{item.author || 'Unknown Contributor'}</span>
-                    <span>{item.page || 'No page'}</span>
+                    {pageUrl ? (
+                      <a
+                        href={pageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${theme.primaryText} inline-flex items-center gap-1 font-semibold hover:underline`}
+                      >
+                        {item.page || 'No page'} <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    ) : (
+                      <span>{item.page || 'No page'}</span>
+                    )}
                     <span>{item.state || 'No state'}</span>
                     <span className={item.theme === 'negative' ? 'text-[#fb2d54] font-semibold' : 'text-[#34c771] font-semibold'}>
                       {item.theme === 'negative' ? 'Negative' : 'Positive'}
                     </span>
                   </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 text-center text-[11px] text-slate-500 xl:w-96">

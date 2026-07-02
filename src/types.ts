@@ -1,7 +1,11 @@
+export type SocialPlatform = 'facebook' | 'instagram' | 'youtube';
+
+export type PlatformLinks = Partial<Record<SocialPlatform, string>>;
+
 export interface AuditItem {
   id: string;
   title: string;
-  platform: 'facebook' | 'instagram' | 'youtube';
+  platform: SocialPlatform;
   format: string; // Reel, Video, Post, Carousel, etc.
   publishedAt: string;
   views: number;
@@ -11,6 +15,9 @@ export interface AuditItem {
   author: string;
   state?: string;
   page?: string;
+  proofUrl?: string;
+  pageUrl?: string;
+  pageLinks?: PlatformLinks;
   theme?: 'positive' | 'negative';
   archivedAt?: string;
   archiveReason?: string;
@@ -38,6 +45,9 @@ export const STATES_LIST = [
 export interface SocialPage {
   name: string;
   url: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  youtubeUrl?: string;
 }
 
 export const DEFAULT_PAGES: SocialPage[] = [];

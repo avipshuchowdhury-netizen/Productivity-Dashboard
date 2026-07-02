@@ -1,4 +1,5 @@
-import type { AuditItem } from '../types';
+import type { AuditItem, SocialPage } from '../types';
+import { auditItemPageUrl, auditItemPostUrl } from './socialLinks';
 
 type Platform = AuditItem['platform'];
 
@@ -53,26 +54,24 @@ export type WorkspaceReportInput = {
   contributors: ReportContributor[];
   topPosts: AuditItem[];
   trendData: ReportTrendPoint[];
+  savedPages: SocialPage[];
 };
 
-const platformMeta: Record<Platform, { label: string; color: string; soft: string; logo: string }> = {
+const platformMeta: Record<Platform, { label: string; color: string; soft: string }> = {
   facebook: {
     label: 'Facebook',
     color: '#1877f2',
-    soft: '#e8f1ff',
-    logo: 'f'
+    soft: '#e8f1ff'
   },
   instagram: {
     label: 'Instagram',
     color: '#e1306c',
-    soft: '#fff0f6',
-    logo: '◎'
+    soft: '#fff0f6'
   },
   youtube: {
     label: 'YouTube',
     color: '#ff0000',
-    soft: '#fff1f1',
-    logo: '▶'
+    soft: '#fff1f1'
   }
 };
 
@@ -102,8 +101,29 @@ const metricCard = (label: string, value: string, helper: string) => `
 
 const platformLogo = (platform: Platform) => {
   const meta = platformMeta[platform];
-  const youtubeClass = platform === 'youtube' ? ' logo-youtube' : '';
-  return `<span class="platform-logo${youtubeClass}" style="--platform-color:${meta.color};--platform-soft:${meta.soft}">${escapeHtml(meta.logo)}</span>`;
+  const icons: Record<Platform, string> = {
+    facebook: '<span class="facebook-mark">f</span>',
+    instagram: `
+      <svg class="instagram-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="4.2" y="4.2" width="15.6" height="15.6" rx="4.6"></rect>
+        <circle cx="12" cy="12" r="3.55"></circle>
+        <circle cx="16.7" cy="7.35" r="1.15"></circle>
+      </svg>
+    `,
+    youtube: `
+      <svg class="youtube-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="6.5" width="18" height="11" rx="3"></rect>
+        <path d="M10.4 9.35 15.2 12l-4.8 2.65Z"></path>
+      </svg>
+    `
+  };
+  return `<span class="platform-logo logo-${platform}" style="--platform-color:${meta.color};--platform-soft:${meta.soft}">${icons[platform]}</span>`;
+};
+
+const anchor = (label: string, url: string, className = '') => {
+  if (!url) return escapeHtml(label);
+  const classAttr = className ? ` class="${escapeHtml(className)}"` : '';
+  return `<a${classAttr} href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
 };
 
 const renderPlatformSection = (item: ReportPlatformBreakdown, maxViews: number) => {
@@ -180,19 +200,26 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       <td>${formatCompact(contributor.likes + contributor.comments + contributor.shares)}</td>
     </tr>
   `).join('');
-  const topPostRows = input.topPosts.slice(0, 10).map((post, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td>
-        <strong>${escapeHtml(post.title)}</strong>
-        <small>${escapeHtml(post.page || 'No page')} · ${escapeHtml(post.state || 'No state')}</small>
-      </td>
-      <td>${platformLogo(post.platform)} ${escapeHtml(platformMeta[post.platform].label)}</td>
-      <td>${escapeHtml(post.author)}</td>
-      <td>${formatCompact(post.views)}</td>
-      <td>${formatCompact(post.likes + post.comments + post.shares)}</td>
-    </tr>
-  `).join('');
+  const topPostRows = input.topPosts.slice(0, 10).map((post, index) => {
+    const postUrl = auditItemPostUrl(post);
+    const pageUrl = auditItemPageUrl(post, input.savedPages);
+    const pageLabel = post.page || 'No page';
+
+    return `
+      <tr>
+        <td>${index + 1}</td>
+        <td>
+          <strong>${anchor(post.title, postUrl, 'post-link')}</strong>
+          <small>${postUrl ? anchor('Open live post', postUrl, 'inline-link') : 'No live post URL attached'} · ${escapeHtml(post.format)}</small>
+        </td>
+        <td>${platformLogo(post.platform)} ${escapeHtml(platformMeta[post.platform].label)}</td>
+        <td>${anchor(pageLabel, pageUrl, 'page-link')}<small>${escapeHtml(post.state || 'No state')}</small></td>
+        <td>${escapeHtml(post.author)}</td>
+        <td>${formatCompact(post.views)}</td>
+        <td>${formatCompact(post.likes + post.comments + post.shares)}</td>
+      </tr>
+    `;
+  }).join('');
 
   return `<!doctype html>
 <html>
@@ -345,9 +372,39 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         font-weight: 900;
         line-height: 1;
       }
+      .platform-logo svg {
+        width: 18px;
+        height: 18px;
+      }
+      .logo-instagram {
+        background: radial-gradient(circle at 30% 110%, #fdf497 0 14%, #fd5949 35%, #d6249f 64%, #285aeb 100%);
+      }
+      .logo-instagram svg {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 1.9;
+      }
+      .logo-instagram circle:last-child {
+        fill: #fff;
+        stroke: none;
+      }
       .logo-youtube {
         border-radius: 7px;
-        font-size: 12px;
+      }
+      .logo-youtube svg {
+        fill: #fff;
+      }
+      .logo-youtube rect {
+        fill: transparent;
+      }
+      .logo-youtube path {
+        fill: #fff;
+      }
+      .facebook-mark {
+        transform: translateY(1px);
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 900;
       }
       .bar-track,
       .trend-bar {
@@ -407,6 +464,21 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         margin-top: 2px;
         color: #8f6b61;
         font-size: 9px;
+      }
+      .report-table a {
+        color: #d7351c;
+        font-weight: 900;
+        text-decoration: none;
+      }
+      .report-table a:hover {
+        text-decoration: underline;
+      }
+      .report-table .post-link {
+        color: #241815;
+      }
+      .report-table .page-link,
+      .report-table .inline-link {
+        color: #d7351c;
       }
       .trend-cell {
         display: grid;
@@ -501,8 +573,8 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       <section class="section">
         <h2>Top Content</h2>
         <table class="report-table">
-          <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Contributor</th><th>Views</th><th>Engagement</th></tr></thead>
-          <tbody>${topPostRows || '<tr><td colspan="6">No content data available.</td></tr>'}</tbody>
+          <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Page</th><th>Contributor</th><th>Views</th><th>Engagement</th></tr></thead>
+          <tbody>${topPostRows || '<tr><td colspan="7">No content data available.</td></tr>'}</tbody>
         </table>
       </section>
 
