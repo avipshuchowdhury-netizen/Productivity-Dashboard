@@ -21,15 +21,6 @@ export type ReportContributor = {
   shares: number;
 };
 
-export type ReportTrendPoint = {
-  date: string;
-  views: number;
-  likes: number;
-  comments: number;
-  shares: number;
-  posts: number;
-};
-
 export type WorkspaceReportInput = {
   generatedAt: string;
   dateRangeLabel: string;
@@ -53,7 +44,6 @@ export type WorkspaceReportInput = {
   platformBreakdown: ReportPlatformBreakdown[];
   contributors: ReportContributor[];
   topPosts: AuditItem[];
-  trendData: ReportTrendPoint[];
   savedPages: SocialPage[];
 };
 
@@ -148,44 +138,6 @@ const renderPlatformSection = (item: ReportPlatformBreakdown, maxViews: number) 
         <div><span>Engagement</span><strong>${formatCompact(engagement)}</strong></div>
       </div>
     </section>
-  `;
-};
-
-const renderTrend = (trendData: ReportTrendPoint[]) => {
-  const maxViews = Math.max(...trendData.map(point => point.views), 1);
-  const rows = trendData.slice(-12).map(point => {
-    const width = Math.max(3, Math.round((point.views / maxViews) * 100));
-    return `
-      <tr>
-        <td>${escapeHtml(point.date)}</td>
-        <td>${point.posts}</td>
-        <td>
-          <div class="trend-cell">
-            <div class="trend-bar"><span style="width:${width}%"></span></div>
-            <strong>${formatCompact(point.views)}</strong>
-          </div>
-        </td>
-        <td>${formatCompact(point.likes)}</td>
-        <td>${formatCompact(point.comments)}</td>
-        <td>${formatCompact(point.shares)}</td>
-      </tr>
-    `;
-  }).join('');
-
-  return `
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Posts</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Comments</th>
-          <th>Shares</th>
-        </tr>
-      </thead>
-      <tbody>${rows || '<tr><td colspan="6">No trend data available for this range.</td></tr>'}</tbody>
-    </table>
   `;
 };
 
@@ -406,8 +358,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         font-size: 18px;
         font-weight: 900;
       }
-      .bar-track,
-      .trend-bar {
+      .bar-track {
         overflow: hidden;
         border-radius: 999px;
         background: #f1e6e2;
@@ -416,8 +367,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         height: 8px;
         margin: 14px 0 12px;
       }
-      .bar-fill,
-      .trend-bar span {
+      .bar-fill {
         display: block;
         height: 100%;
         border-radius: inherit;
@@ -479,18 +429,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       .report-table .page-link,
       .report-table .inline-link {
         color: #d7351c;
-      }
-      .trend-cell {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        align-items: center;
-      }
-      .trend-bar {
-        height: 7px;
-      }
-      .trend-bar span {
-        background: #e83f23;
       }
       footer {
         margin-top: 16px;
@@ -555,11 +493,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         <div class="platforms">
           ${input.platformBreakdown.map(item => renderPlatformSection(item, maxPlatformViews)).join('')}
         </div>
-      </section>
-
-      <section class="section">
-        <h2>Daily Trend</h2>
-        ${renderTrend(input.trendData)}
       </section>
 
       <section class="section">

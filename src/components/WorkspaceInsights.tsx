@@ -12,7 +12,6 @@ interface Props {
   canGenerateReport?: boolean;
 }
 
-type TrendMetric = 'views' | 'likes' | 'comments' | 'shares';
 type ContributorMetric = 'performance' | 'posts' | 'views' | 'likes' | 'comments' | 'shares';
 
 type ContributorStat = {
@@ -33,10 +32,8 @@ export default function WorkspaceInsights({
   onChangePlatform,
   canGenerateReport = false
 }: Props) {
-  const [selectedMetric, setSelectedMetric] = useState<TrendMetric>('views');
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
   const [selectedContributorMetric, setSelectedContributorMetric] = useState<ContributorMetric>('views');
-  const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null);
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
   const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
   const [reportNotice, setReportNotice] = useState('');
@@ -106,12 +103,6 @@ export default function WorkspaceInsights({
   const contributorMetricLabels: Record<ContributorMetric, string> = {
     performance: 'Performance',
     posts: 'Posts',
-    views: 'Views',
-    likes: 'Likes',
-    comments: 'Comments',
-    shares: 'Shares'
-  };
-  const trendMetricLabels: Record<TrendMetric, string> = {
     views: 'Views',
     likes: 'Likes',
     comments: 'Comments',
@@ -338,28 +329,6 @@ export default function WorkspaceInsights({
     shares: items.reduce((acc, item) => acc + item.shares, 0)
   }));
 
-  // Prepare daily trends for SVG chart
-  const uniqueDates = Array.from(new Set(focusedTimelineData.map(item => item.publishedAt))).sort();
-  const chartData = uniqueDates.map(date => {
-    const dayItems = focusedTimelineData.filter(item => item.publishedAt === date);
-    const views = dayItems.reduce((acc, i) => acc + i.views, 0);
-    const likes = dayItems.reduce((acc, i) => acc + i.likes, 0);
-    const comments = dayItems.reduce((acc, i) => acc + i.comments, 0);
-    const shares = dayItems.reduce((acc, i) => acc + i.shares, 0);
-    return {
-      date: date.slice(5),
-      fullDate: date,
-      views,
-      likes,
-      comments,
-      shares,
-      posts: dayItems.length
-    };
-  });
-
-  const currentMetricKey = selectedMetric;
-  const maxVal = Math.max(...chartData.map(d => d[currentMetricKey]), 100);
-  const hoveredTrendPoint = hoveredTrendIndex !== null ? chartData[hoveredTrendIndex] : null;
   const leaderboardLeader = rankedAuthorStats[0] || null;
   const leaderScore = leaderboardLeader ? getContributorMetricValue(leaderboardLeader) : 0;
   const getRankLabel = (index: number) => {
@@ -425,14 +394,6 @@ export default function WorkspaceInsights({
         shares: author.shares
       })),
       topPosts: [...focusedTimelineData].sort((a, b) => b.views - a.views),
-      trendData: chartData.map(point => ({
-        date: point.fullDate,
-        views: point.views,
-        likes: point.likes,
-        comments: point.comments,
-        shares: point.shares,
-        posts: point.posts
-      })),
       savedPages
     });
 
@@ -712,150 +673,8 @@ export default function WorkspaceInsights({
 
       </div>
 
-      {/* Main Graph & Channel Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Interactive SVG Chart with dynamic theme and simple text */}
-        <div className="lg:col-span-2 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Performance Trends</h3>
-                <p className="text-xs text-slate-400">Comparing active levels over the selected audit timeline.</p>
-              </div>
-              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center">
-                {(['views', 'likes', 'comments', 'shares'] as const).map(met => (
-                  <button
-                    key={met}
-                    onClick={() => setSelectedMetric(met)}
-                    className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer ${
-                      selectedMetric === met
-                        ? `${theme.primaryBg} text-white shadow-2xs`
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {trendMetricLabels[met]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* SVG Visual Canvas Area */}
-            <div className="h-64 w-full relative select-none">
-              {chartData.length > 1 ? (
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {/* Horizontal reference lines */}
-                  {[0, 25, 50, 75, 100].map((percent, ix) => (
-                    <line 
-                      key={ix} 
-                      x1="0" 
-                      y1={percent} 
-                      x2="100" 
-                      y2={percent} 
-                      stroke="#f1f5f9" 
-                      strokeWidth="0.5" 
-                    />
-                  ))}
-
-                  {/* Graph Path */}
-                  <path
-                    d={chartData.reduce((pathStr, d, idx) => {
-                      const x = (idx / (chartData.length - 1)) * 100;
-                      const y = 90 - (d[currentMetricKey] / maxVal) * 80;
-                      return `${pathStr} ${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                    }, '')}
-                    fill="none"
-                    stroke={theme.chartFill}
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  
-                  {/* Filled Gradient Underneath */}
-                  <path
-                    d={`${chartData.reduce((pathStr, d, idx) => {
-                      const x = (idx / (chartData.length - 1)) * 100;
-                      const y = 90 - (d[currentMetricKey] / maxVal) * 80;
-                      return `${pathStr} ${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                    }, '')} L 100 100 L 0 100 Z`}
-                    fill="url(#trend-gradient)"
-                    opacity="0.12"
-                  />
-
-                  {/* Gradient Definition */}
-                  <defs>
-                    <linearGradient id="trend-gradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={theme.chartFill} />
-                      <stop offset="100%" stopColor={theme.chartFill} stopOpacity="0.1" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Data Points */}
-                  {chartData.map((d, index) => {
-                    const x = (index / (chartData.length - 1)) * 100;
-                    const y = 90 - (d[currentMetricKey] / maxVal) * 80;
-                    return (
-                      <circle
-                        key={index}
-                        cx={x}
-                        cy={y}
-                        r={hoveredTrendIndex === index ? '2.9' : '1.8'}
-                        stroke="white"
-                        strokeWidth="0.4"
-                        fill={theme.chartFill}
-                        tabIndex={0}
-                        onMouseEnter={() => setHoveredTrendIndex(index)}
-                        onMouseLeave={() => setHoveredTrendIndex(null)}
-                        onFocus={() => setHoveredTrendIndex(index)}
-                        onBlur={() => setHoveredTrendIndex(null)}
-                        className="transition cursor-pointer outline-none"
-                      />
-                    );
-                  })}
-                </svg>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
-                  Add another dated entry to draw this trend.
-                </div>
-              )}
-
-              {/* Float value indicators */}
-              {chartData.length > 1 && (
-                <div className="absolute inset-x-0 bottom-0 top-2 flex justify-between pointer-events-none text-[10px] text-slate-400 font-mono items-end mt-1 px-1">
-                  {chartData.map((d, i) => (
-                    <div key={i} className="flex flex-col items-center">
-                      <span className="bg-slate-950/5 text-slate-800 px-1 py-0.5 rounded-sm font-semibold mb-1">
-                        {d[currentMetricKey] >= 1000 
-                          ? `${(d[currentMetricKey] / 1000).toFixed(1)}k` 
-                          : d[currentMetricKey]}
-                      </span>
-                      <span className="font-semibold text-slate-500">{d.date}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {hoveredTrendPoint && (
-                <div className="absolute right-2 top-2 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 shadow-lg text-xs pointer-events-none">
-                  <div className="font-bold text-slate-800">{hoveredTrendPoint.fullDate}</div>
-                  <div className={`${theme.primaryText} font-extrabold mt-0.5`}>
-                    {formatCompact(hoveredTrendPoint[currentMetricKey])} {trendMetricLabels[selectedMetric].toLowerCase()}
-                  </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">{hoveredTrendPoint.posts} entries</div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className={`flex items-center gap-1.5 font-bold ${theme.primaryText}`}>
-              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: theme.chartFill }}></span>
-              {trendMetricLabels[selectedMetric].toUpperCase()} Trends
-            </span>
-            <span>{focusedContributorStat ? `${focusedContributorStat.name} contribution view` : 'All contributor activity'}</span>
-          </div>
-        </div>
-
+      {/* Channel Breakdown */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Platform Share and Leaderboard */}
         <div id="channel-share-matrix" className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs flex flex-col justify-between">
           <div>
