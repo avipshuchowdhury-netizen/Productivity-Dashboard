@@ -131,13 +131,13 @@ export default function WorkspaceInsights({
   const [selectedState, setSelectedState] = useState<string>('All States');
   const [selectedPage, setSelectedPage] = useState<string>('All Pages');
 
-  // Page List dynamically maps to configured Saved Pages list
-  const currentPagesList = savedPages.length > 0 ? savedPages.map(p => p.name) : PAGES_LIST;
+  // Page list combines configured pages with page names already present on uploaded entries.
+  const configuredPagesList = savedPages.length > 0 ? savedPages.map(p => p.name) : PAGES_LIST;
 
   // Assign deterministic fallbacks only when older records lack state/page fields.
   const auditItemsWithDefaults = auditItems.map((item, idx) => {
     const defaultState = STATES_LIST[idx % STATES_LIST.length];
-    const defaultPage = currentPagesList.length > 0 ? currentPagesList[idx % currentPagesList.length] : '';
+    const defaultPage = configuredPagesList.length > 0 ? configuredPagesList[idx % configuredPagesList.length] : '';
     return {
       ...item,
       state: item.state || defaultState,
@@ -145,6 +145,13 @@ export default function WorkspaceInsights({
     };
   });
   const activeAuditItemsWithDefaults = auditItemsWithDefaults.filter(item => !isArchived(item));
+  const currentPagesList = Array.from(new Set([
+    ...configuredPagesList,
+    ...activeAuditItemsWithDefaults
+      .filter(item => selectedState === 'All States' || item.state === selectedState)
+      .map(item => item.page || '')
+      .filter(Boolean)
+  ])).sort((a, b) => a.localeCompare(b));
 
 
   // Calculate reference date based on data or today
@@ -501,7 +508,10 @@ export default function WorkspaceInsights({
             <select
               className={`flex-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-hidden transition ${theme.primaryBorder}`}
               value={selectedState}
-              onChange={e => setSelectedState(e.target.value)}
+              onChange={e => {
+                setSelectedState(e.target.value);
+                setSelectedPage('All Pages');
+              }}
             >
               <option value="All States">All States (Consolidated)</option>
               {STATES_LIST.map(st => (
