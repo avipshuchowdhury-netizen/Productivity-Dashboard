@@ -82,25 +82,15 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 const formatNumber = (value: number) => Math.round(value).toLocaleString('en-IN');
 
 const formatCompact = (value: number) => {
-  if (value >= 10_000_000) return `${(value / 10_000_000).toFixed(1)}Cr`;
-  if (value >= 100_000) return `${(value / 100_000).toFixed(1)}L`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
   return formatNumber(value);
 };
 
-const metricCard = (label: string, value: string, helper: string) => `
+const metricCard = (label: string, value: string) => `
   <article class="metric-card">
-    <span>${escapeHtml(label)}</span>
     <strong>${escapeHtml(value)}</strong>
-    <small>${escapeHtml(helper)}</small>
-  </article>
-`;
-
-const snapshotCard = (label: string, value: string, helper: string) => `
-  <article class="snapshot-card">
     <span>${escapeHtml(label)}</span>
-    <strong>${escapeHtml(value)}</strong>
-    <small>${escapeHtml(helper)}</small>
   </article>
 `;
 
@@ -203,32 +193,6 @@ const renderContributorPodium = (input: WorkspaceReportInput) => {
     .join('');
 
   return cards || '<p class="empty-state">No contributor data available.</p>';
-};
-
-const renderExecutiveSnapshot = (input: WorkspaceReportInput) => {
-  const topContributor = input.contributors[0];
-  const bestPlatform = [...input.platformBreakdown].sort((a, b) => b.views - a.views)[0];
-  const topPost = input.topPosts[0];
-  const topContributorMetric = topContributor
-    ? formatCompact(contributorMetricValue(topContributor, input.leaderboard.metric))
-    : 'No data';
-  const bestPlatformLabel = bestPlatform ? platformMeta[bestPlatform.platform].label : 'No data';
-  const bestPlatformHelper = bestPlatform
-    ? `${formatCompact(bestPlatform.views)} views from ${bestPlatform.entries} entries`
-    : 'No channel activity';
-  const topPostTitle = topPost?.title || 'No content data';
-  const topPostHelper = topPost
-    ? `${formatCompact(topPost.views)} views - ${platformMeta[topPost.platform].label}`
-    : 'No posts in current filters';
-
-  return `
-    <section class="snapshot">
-      ${snapshotCard('Top contributor', topContributor?.name || 'No data', `${input.leaderboard.metricLabel}: ${topContributorMetric}`)}
-      ${snapshotCard('Best channel', bestPlatformLabel, bestPlatformHelper)}
-      ${snapshotCard('Top content', topPostTitle, topPostHelper)}
-      ${snapshotCard('Action signal', `${input.metrics.actionSignalRate.toFixed(1)}%`, 'comments + shares / views')}
-    </section>
-  `;
 };
 
 const renderTopPostRow = (post: AuditItem, index: number, input: WorkspaceReportInput) => {
@@ -397,7 +361,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       .meta-grid div,
       .metric-card,
-      .snapshot-card,
       .platform-card,
       .section {
         background: rgba(255, 255, 255, 0.9);
@@ -408,7 +371,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         padding: 9px 10px;
       }
       .meta-grid span,
-      .snapshot-card span,
       .metric-card span,
       .platform-grid span {
         display: block;
@@ -425,31 +387,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         font-size: 11px;
         line-height: 1.25;
       }
-      .snapshot {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        margin-top: 14px;
-      }
-      .snapshot-card {
-        min-height: 82px;
-        padding: 12px;
-      }
-      .snapshot-card strong {
-        display: block;
-        margin-top: 7px;
-        color: #111827;
-        font-size: 15px;
-        line-height: 1.1;
-      }
-      .snapshot-card small {
-        display: block;
-        margin-top: 6px;
-        color: #526071;
-        font-size: 9px;
-        font-weight: 800;
-        line-height: 1.35;
-      }
       .metrics {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -458,19 +395,14 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       .metric-card {
         padding: 12px;
-        min-height: 78px;
+        min-height: 70px;
       }
       .metric-card strong {
         display: block;
-        margin: 7px 0 4px;
+        margin: 0 0 7px;
         color: #111827;
-        font-size: 20px;
+        font-size: 22px;
         line-height: 1;
-      }
-      .metric-card small {
-        color: #526071;
-        font-size: 9px;
-        font-weight: 700;
       }
       .section {
         margin-top: 14px;
@@ -898,16 +830,15 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
           <div><span>Contributor</span><strong>${escapeHtml(input.filters.contributor)}</strong></div>
           <div><span>Leaderboard</span><strong>${escapeHtml(input.leaderboard.metricLabel)} - ${escapeHtml(input.leaderboard.platform)}</strong></div>
         </div>
-        ${renderExecutiveSnapshot(input)}
         <div class="metrics">
-          ${metricCard('Contents Published', formatNumber(input.metrics.entries), 'active records in range')}
-          ${metricCard('Views', formatNumber(input.metrics.views), `${formatCompact(input.metrics.avgViews)} avg per entry`)}
-          ${metricCard('Engagement', formatNumber(input.metrics.engagement), 'likes + comments + shares')}
-          ${metricCard('Action Signal', `${input.metrics.actionSignalRate.toFixed(1)}%`, 'comments + shares / views')}
-          ${metricCard('Likes', formatNumber(input.metrics.likes), 'reaction volume')}
-          ${metricCard('Comments', formatNumber(input.metrics.comments), 'audience replies')}
-          ${metricCard('Shares', formatNumber(input.metrics.shares), 'forwarded content')}
-          ${metricCard('Platforms', String(input.platformBreakdown.filter(item => item.entries > 0).length), 'channels with activity')}
+          ${metricCard('Contents', formatNumber(input.metrics.entries))}
+          ${metricCard('Views', formatCompact(input.metrics.views))}
+          ${metricCard('Engagement', formatCompact(input.metrics.engagement))}
+          ${metricCard('Action Signal', `${input.metrics.actionSignalRate.toFixed(1)}%`)}
+          ${metricCard('Likes', formatCompact(input.metrics.likes))}
+          ${metricCard('Comments', formatCompact(input.metrics.comments))}
+          ${metricCard('Shares', formatCompact(input.metrics.shares))}
+          ${metricCard('Platforms', String(input.platformBreakdown.filter(item => item.entries > 0).length))}
         </div>
       </section>
 
