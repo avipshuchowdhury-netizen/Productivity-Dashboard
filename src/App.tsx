@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Archive,
   BarChart2, 
+  CalendarDays,
+  Link2,
   LogOut,
   Moon,
   RefreshCw, 
@@ -11,7 +13,7 @@ import {
 } from 'lucide-react';
 
 // Import Types
-import { DashboardData, AuditItem, SocialPage, DEFAULT_PAGES } from './types';
+import { DashboardData, AuditItem, SocialPage, DEFAULT_PAGES, SocialSyncAccountStatus } from './types';
 
 // Import Modular Components
 import WorkspaceInsights from './components/WorkspaceInsights';
@@ -27,6 +29,14 @@ const SAMARTH_FULL_FORM = 'Single Admin Managed AI Run Thematic Handles';
 const SAMPLE_PREVIEW_EMAIL = 'avipshu.chowdhury@varaheanalytics.com';
 
 type DisplayMode = 'light' | 'dark';
+
+const dateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+
+const daysAgoInputValue = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return dateInputValue(date);
+};
 
 const isLocalSamplePreviewEnabled = () => {
   if (typeof window === 'undefined') return false;
@@ -62,8 +72,45 @@ const normalizeAuditItem = (item: AuditItem): AuditItem => ({
   createdAt: item.createdAt || undefined,
   createdByEmail: item.createdByEmail?.trim() || undefined,
   updatedAt: item.updatedAt || undefined,
-  updatedByEmail: item.updatedByEmail?.trim() || undefined
+  updatedByEmail: item.updatedByEmail?.trim() || undefined,
+  source: ['manual', 'meta-api', 'youtube-api'].includes(String(item.source)) ? item.source : undefined,
+  sourceId: item.sourceId?.trim() || undefined,
+  sourceAccountId: item.sourceAccountId?.trim() || undefined,
+  syncedAt: item.syncedAt || undefined
 });
+
+const normalizeSocialPage = (page: SocialPage): SocialPage | null => {
+  const name = page.name.trim();
+  const url = cleanExternalUrl(page.url);
+  if (!name || !url) return null;
+  return {
+    name,
+    url,
+    facebookUrl: cleanExternalUrl(page.facebookUrl) || undefined,
+    instagramUrl: cleanExternalUrl(page.instagramUrl) || undefined,
+    youtubeUrl: cleanExternalUrl(page.youtubeUrl) || undefined
+  };
+};
+
+const mergeSocialPages = (existingPages: SocialPage[], incomingPages: SocialPage[]) => {
+  const pagesByName = new Map<string, SocialPage>();
+
+  [...existingPages, ...incomingPages].forEach((page) => {
+    const normalized = normalizeSocialPage(page);
+    if (!normalized) return;
+    const key = normalized.name.toLowerCase();
+    const existing = pagesByName.get(key);
+    pagesByName.set(key, {
+      name: normalized.name,
+      url: normalized.url || existing?.url || '',
+      facebookUrl: normalized.facebookUrl || existing?.facebookUrl,
+      instagramUrl: normalized.instagramUrl || existing?.instagramUrl,
+      youtubeUrl: normalized.youtubeUrl || existing?.youtubeUrl
+    });
+  });
+
+  return Array.from(pagesByName.values()).sort((a, b) => a.name.localeCompare(b.name));
+};
 
 export default function App() {
   const {
@@ -193,11 +240,16 @@ export default function App() {
   
   // Database States
   const [data, setData] = useState<DashboardData>({
-    auditItems: isLocalSamplePreview ? SAMPLE_AUDIT_ITEMS : []
+    auditItems: isLocalSamplePreview ? SAMPLE_AUDIT_ITEMS : [],
+    socialPages: isLocalSamplePreview ? SAMPLE_PAGES : [],
+    socialSync: { accounts: [], warnings: [] }
   });
   const [isLoading, setIsLoading] = useState(!isLocalSamplePreview);
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [syncNotice, setSyncNotice] = useState('');
+  const [syncStartDate, setSyncStartDate] = useState(() => daysAgoInputValue(7));
+  const [syncEndDate, setSyncEndDate] = useState(() => dateInputValue(new Date()));
 
   const getFirebaseAuthHeaders = async (): Promise<Record<string, string>> => {
     if (isLocalSamplePreview) return {};
@@ -210,7 +262,11 @@ export default function App() {
     if (isLocalSamplePreview) {
       if (showSyncIndicator) setIsSyncing(true);
       setErrorMessage('');
-      setData({ auditItems: SAMPLE_AUDIT_ITEMS });
+      setData({
+        auditItems: SAMPLE_AUDIT_ITEMS,
+        socialPages: SAMPLE_PAGES,
+        socialSync: { accounts: [], warnings: [] }
+      });
       setSavedPages(SAMPLE_PAGES);
       setIsLoading(false);
       setIsSyncing(false);
@@ -218,7 +274,7 @@ export default function App() {
     }
 
     if (!user) {
-      setData({ auditItems: [] });
+      setData({ auditItems: [], socialPages: [], socialSync: { accounts: [], warnings: [] } });
       setIsLoading(false);
       setIsSyncing(false);
       return;
@@ -239,15 +295,80 @@ export default function App() {
         throw new Error("Server storage unavailable");
       }
       const json = await response.json();
+      const socialPages = Array.isArray(json.socialPages) ? json.socialPages : [];
+      const socialSync = json.socialSync && Array.isArray(json.socialSync.accounts)
+        ? {
+            accounts: json.socialSync.accounts as SocialSyncAccountStatus[],
+            warnings: Array.isArray(json.socialSync.warnings) ? json.socialSync.warnings : []
+          }
+        : { accounts: [], warnings: [] };
       setData({
-        auditItems: json.auditItems || []
+        auditItems: json.auditItems || [],
+        socialPages,
+        socialSync
       });
+      if (socialPages.length > 0) {
+        setSavedPages(prev => mergeSocialPages(prev, socialPages));
+      }
     } catch (err: any) {
       console.error(err);
       setErrorMessage("Workspace data could not be loaded from the secure API.");
-      setData({ auditItems: [] });
+      setData({ auditItems: [], socialPages: [], socialSync: { accounts: [], warnings: [] } });
     } finally {
       setIsLoading(false);
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncData = async () => {
+    if (isLocalSamplePreview || !hasEntryManagementAccess) {
+      await fetchDashboardData(true);
+      return;
+    }
+
+    setIsSyncing(true);
+    setErrorMessage('');
+    setSyncNotice('');
+
+    if (!syncStartDate || !syncEndDate || syncStartDate > syncEndDate) {
+      setIsSyncing(false);
+      setErrorMessage("Choose a valid sync date range.");
+      return;
+    }
+
+    try {
+      const authHeaders = await getFirebaseAuthHeaders();
+      const response = await fetch("/api/social-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({
+          startDate: syncStartDate,
+          endDate: syncEndDate
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.status === 401 || response.status === 403) {
+        setErrorMessage("Your Firebase session is not authorized to run automated social sync.");
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(result.error || "Social sync failed");
+      }
+
+      await fetchDashboardData(false);
+
+      const warningText = Array.isArray(result.warnings) && result.warnings.length > 0
+        ? ` Notes: ${result.warnings.slice(0, 2).join(' ')}`
+        : '';
+      const range = result.requestedDateRange
+        ? `${result.requestedDateRange.startDate} to ${result.requestedDateRange.endDate}`
+        : `${syncStartDate} to ${syncEndDate}`;
+      setSyncNotice(`Automated social sync checked ${result.configuredAccounts || 0} account(s), saved ${result.syncedItems || 0} item(s), and covered ${range}.${warningText}`);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Automated social sync failed. Check API credentials and server logs, then try again.");
+    } finally {
       setIsSyncing(false);
     }
   };
@@ -426,6 +547,27 @@ export default function App() {
 
   const handleRemovePage = (name: string) => {
     setSavedPages(prev => prev.filter(p => p.name !== name));
+  };
+
+  const socialSyncAccounts = data.socialSync?.accounts || [];
+  const socialSyncWarnings = data.socialSync?.warnings || [];
+  const syncPlatforms = ['facebook', 'instagram', 'youtube'] as const;
+  const readyPlatformCount = socialSyncAccounts.reduce((total, account) => (
+    total + syncPlatforms.filter(platform => account.platforms[platform].ready).length
+  ), 0);
+  const linkedPlatformCount = socialSyncAccounts.reduce((total, account) => (
+    total + syncPlatforms.filter(platform => account.platforms[platform].linked).length
+  ), 0);
+  const platformStatusLabels: Record<'facebook' | 'instagram' | 'youtube', string> = {
+    facebook: 'FB',
+    instagram: 'IG',
+    youtube: 'YT'
+  };
+  const platformStatusClasses = (account: SocialSyncAccountStatus, platform: 'facebook' | 'instagram' | 'youtube') => {
+    const status = account.platforms[platform];
+    if (!status.linked) return 'border-[var(--palette-line)] bg-[var(--surface-glass)] text-[var(--text-faint)]';
+    if (status.ready) return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    return 'border-amber-200 bg-amber-50 text-amber-700';
   };
 
   // Navigation tab styling helpers
@@ -623,9 +765,9 @@ export default function App() {
 
             {/* Sync trigger button */}
             <button 
-              onClick={() => fetchDashboardData(true)}
+              onClick={handleSyncData}
               className={`px-4 py-2 rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${appTheme.btnBg}`}
-              title="Sync team database"
+              title={hasEntryManagementAccess ? 'Fetch platform data and sync team database' : 'Sync team database'}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
               <span>{isSyncing ? 'Syncing' : 'Sync Data'}</span>
@@ -661,11 +803,118 @@ export default function App() {
 
         {/* Main Content scrollable panel */}
         <main className="p-4 md:p-6 flex-1 flex flex-col space-y-6 overflow-y-auto max-w-[1360px] w-full mx-auto">
+          {hasEntryManagementAccess && !isLocalSamplePreview && (
+            <section className="rounded-xl border border-[var(--palette-line)] bg-[var(--surface-panel)] px-4 py-4 shadow-xs">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${appTheme.accentBg}`}>
+                      <Link2 className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-extrabold uppercase tracking-[0.08em] text-[var(--text-main)]">
+                        Automated API Sync
+                      </h2>
+                      <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-faint)]">
+                        {socialSyncAccounts.length} page group{socialSyncAccounts.length === 1 ? '' : 's'} · {readyPlatformCount}/{linkedPlatformCount || 0} platform link{linkedPlatformCount === 1 ? '' : 's'} ready
+                      </p>
+                    </div>
+                  </div>
+
+                  {socialSyncAccounts.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {socialSyncAccounts.slice(0, 5).map(account => (
+                        <div
+                          key={account.id}
+                          className="flex items-center gap-1.5 rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-2 py-1 text-[10px] font-bold text-[var(--text-muted)]"
+                          title={account.name}
+                        >
+                          <span className="max-w-[160px] truncate">{account.name}</span>
+                          {(['facebook', 'instagram', 'youtube'] as const).map(platform => (
+                            <span
+                              key={platform}
+                              className={`rounded-md border px-1.5 py-0.5 font-mono text-[9px] ${platformStatusClasses(account, platform)}`}
+                              title={
+                                account.platforms[platform].ready
+                                  ? `${platform} ready`
+                                  : account.platforms[platform].linked
+                                    ? `${platform}: ${account.platforms[platform].missing.join(', ')}`
+                                    : `${platform} not linked`
+                              }
+                            >
+                              {platformStatusLabels[platform]}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                      {socialSyncAccounts.length > 5 && (
+                        <span className="rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-2 py-1 text-[10px] font-bold text-[var(--text-faint)]">
+                          +{socialSyncAccounts.length - 5}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <label className="min-w-[150px] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--text-faint)]">
+                    Start Date
+                    <span className="mt-1 flex items-center gap-2 rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2">
+                      <CalendarDays className="h-3.5 w-3.5 text-[var(--palette-accent)]" />
+                      <input
+                        type="date"
+                        value={syncStartDate}
+                        max={syncEndDate}
+                        onChange={event => setSyncStartDate(event.target.value)}
+                        className="w-full bg-transparent text-xs font-bold text-[var(--text-main)] outline-none"
+                      />
+                    </span>
+                  </label>
+
+                  <label className="min-w-[150px] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--text-faint)]">
+                    End Date
+                    <span className="mt-1 flex items-center gap-2 rounded-lg border border-[var(--palette-line)] bg-[var(--surface-glass)] px-3 py-2">
+                      <CalendarDays className="h-3.5 w-3.5 text-[var(--palette-accent)]" />
+                      <input
+                        type="date"
+                        value={syncEndDate}
+                        min={syncStartDate}
+                        max={dateInputValue(new Date())}
+                        onChange={event => setSyncEndDate(event.target.value)}
+                        className="w-full bg-transparent text-xs font-bold text-[var(--text-main)] outline-none"
+                      />
+                    </span>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleSyncData}
+                    disabled={isSyncing}
+                    className={`flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-60 ${appTheme.btnBg}`}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{isSyncing ? 'Syncing' : 'Sync Data'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {socialSyncWarnings.length > 0 && (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
+                  {socialSyncWarnings.slice(0, 2).join(' ')}
+                </div>
+              )}
+            </section>
+          )}
           
           {/* Sync notification message banner if any */}
           {errorMessage && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg font-medium">
               {errorMessage}
+            </div>
+          )}
+          {syncNotice && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg font-medium">
+              {syncNotice}
             </div>
           )}
 

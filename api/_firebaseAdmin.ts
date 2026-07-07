@@ -1,5 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import type { AuditItem } from '../src/types';
+import type { AuditItem, PlatformLinks } from '../src/types';
 
 export type ApiRequest = {
   method?: string;
@@ -25,7 +25,7 @@ type FirestoreAuditItem = AuditItem & {
   updatedAt?: string;
   updatedByEmail?: string;
   archivedByEmail?: string;
-  [key: string]: string | number | undefined;
+  [key: string]: unknown;
 };
 
 const normalizeEmail = (email?: string | null) => email?.trim().toLowerCase() || '';
@@ -181,6 +181,30 @@ const clampNumber = (value: unknown, max = 1_000_000_000) => {
   return Math.min(Math.floor(numericValue), max);
 };
 
+const clampUrl = (value: unknown) => {
+  const text = clampText(value, '', 700);
+  if (!text) return undefined;
+
+  try {
+    const url = new URL(text);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizePlatformLinks = (links: unknown): PlatformLinks | undefined => {
+  const source = links && typeof links === 'object' ? links as PlatformLinks : {};
+  const normalized: PlatformLinks = {};
+  const facebook = clampUrl(source.facebook);
+  const instagram = clampUrl(source.instagram);
+  const youtube = clampUrl(source.youtube);
+  if (facebook) normalized.facebook = facebook;
+  if (instagram) normalized.instagram = instagram;
+  if (youtube) normalized.youtube = youtube;
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
 export const normalizeAuditItem = (record: Record<string, unknown>): FirestoreAuditItem => ({
   id: clampText(record.id || `aud-${Date.now()}`, `aud-${Date.now()}`, 80),
   title: clampText(record.title, '', 220),
@@ -194,6 +218,9 @@ export const normalizeAuditItem = (record: Record<string, unknown>): FirestoreAu
   author: clampText(record.author || 'Unknown Contributor', 'Unknown Contributor', 120),
   state: record.state ? clampText(record.state, '', 80) : undefined,
   page: record.page ? clampText(record.page, '', 140) : undefined,
+  proofUrl: clampUrl(record.proofUrl),
+  pageUrl: clampUrl(record.pageUrl),
+  pageLinks: normalizePlatformLinks(record.pageLinks),
   theme: record.theme === 'negative' ? 'negative' : 'positive',
   archivedAt: record.archivedAt ? clampText(record.archivedAt, '', 40) : undefined,
   archiveReason: record.archiveReason ? clampText(record.archiveReason, '', 80) : undefined,
@@ -201,7 +228,11 @@ export const normalizeAuditItem = (record: Record<string, unknown>): FirestoreAu
   createdByEmail: record.createdByEmail ? clampText(record.createdByEmail, '', 160) : undefined,
   updatedAt: record.updatedAt ? clampText(record.updatedAt, '', 40) : undefined,
   updatedByEmail: record.updatedByEmail ? clampText(record.updatedByEmail, '', 160) : undefined,
-  archivedByEmail: record.archivedByEmail ? clampText(record.archivedByEmail, '', 160) : undefined
+  archivedByEmail: record.archivedByEmail ? clampText(record.archivedByEmail, '', 160) : undefined,
+  source: ['manual', 'meta-api', 'youtube-api'].includes(String(record.source)) ? record.source as AuditItem['source'] : undefined,
+  sourceId: record.sourceId ? clampText(record.sourceId, '', 180) : undefined,
+  sourceAccountId: record.sourceAccountId ? clampText(record.sourceAccountId, '', 120) : undefined,
+  syncedAt: record.syncedAt ? clampText(record.syncedAt, '', 40) : undefined
 });
 
 export const stripUndefined = <T extends Record<string, unknown>>(value: T) => (

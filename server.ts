@@ -5,6 +5,39 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import {
+  fetchSocialAuditItems,
+  getConfiguredSocialPages,
+  getConfiguredSocialSyncAccounts,
+  isValidSocialSyncSecret,
+  mergeSyncedAuditItems
+} from "./api/_socialSync.js";
+import type { AuditItem } from "./src/types";
+
+const loadLocalEnvFile = (fileName: string) => {
+  const envPath = path.join(process.cwd(), fileName);
+  if (!fs.existsSync(envPath)) return;
+
+  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+  lines.forEach((line) => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith("#")) return;
+    const separatorIndex = trimmedLine.indexOf("=");
+    if (separatorIndex === -1) return;
+
+    const key = trimmedLine.slice(0, separatorIndex).trim();
+    const rawValue = trimmedLine.slice(separatorIndex + 1).trim();
+    if (!key || process.env[key] !== undefined) return;
+
+    const value = rawValue
+      .replace(/^(['"])(.*)\1$/, "$2")
+      .replace(/\\n/g, "\n");
+    process.env[key] = value;
+  });
+};
+
+loadLocalEnvFile(".env");
+loadLocalEnvFile(".env.local");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -223,7 +256,11 @@ const saveDb = (data: any) => {
 // API: Fetch aggregate / dashboard state
 app.get("/api/dashboard-data", requireFirebaseAuth, (req, res) => {
   const db = getDb();
-  res.json(db);
+  res.json({
+    ...db,
+    socialPages: getConfiguredSocialPages(),
+    socialSync: getConfiguredSocialSyncAccounts()
+  });
 });
 
 // API: Save content audit record
@@ -255,7 +292,11 @@ app.post("/api/audit", requireFirebaseAuth, (req, res) => {
     createdByEmail: record.createdByEmail ? clampText(record.createdByEmail, "", 160) : undefined,
     updatedAt: record.updatedAt ? clampText(record.updatedAt, "", 40) : undefined,
     updatedByEmail: record.updatedByEmail ? clampText(record.updatedByEmail, "", 160) : undefined,
-    archivedByEmail: record.archivedByEmail ? clampText(record.archivedByEmail, "", 160) : undefined
+    archivedByEmail: record.archivedByEmail ? clampText(record.archivedByEmail, "", 160) : undefined,
+    source: ["manual", "meta-api", "youtube-api"].includes(record.source) ? record.source : undefined,
+    sourceId: record.sourceId ? clampText(record.sourceId, "", 180) : undefined,
+    sourceAccountId: record.sourceAccountId ? clampText(record.sourceAccountId, "", 120) : undefined,
+    syncedAt: record.syncedAt ? clampText(record.syncedAt, "", 40) : undefined
   });
 
   if (action === "create") {
@@ -393,6 +434,55 @@ app.post("/api/audit", requireFirebaseAuth, (req, res) => {
   }
 
   res.status(400).json({ error: "Invalid Action" });
+});
+
+const runSocialSync = async (
+  res: Response,
+  options: {
+    startDate?: string;
+    endDate?: string;
+  } = {}
+) => {
+  try {
+    const result = await fetchSocialAuditItems(options);
+    const db = getDb();
+    db.auditItems = mergeSyncedAuditItems(
+      db.auditItems as AuditItem[],
+      result.items,
+      result.fetchedAt
+    );
+    saveDb(db);
+
+    return res.json({
+      success: result.success,
+      syncedItems: result.items.length,
+      configuredAccounts: result.configuredAccounts,
+      requestedDateRange: result.requestedDateRange,
+      warnings: result.warnings
+    });
+  } catch (error) {
+    if ((error as Error).message.includes("Sync date range")) {
+      return res.status(400).json({ error: (error as Error).message });
+    }
+    console.error("Unable to sync social platform data", error);
+    return res.status(500).json({ error: "Social platform data could not be synced." });
+  }
+};
+
+app.post("/api/social-sync", requireFirebaseAuth, async (req, res) => {
+  const manager = requireEntryManager(req, res);
+  if (!manager) return;
+  await runSocialSync(res, {
+    startDate: typeof req.body?.startDate === "string" ? req.body.startDate : undefined,
+    endDate: typeof req.body?.endDate === "string" ? req.body.endDate : undefined
+  });
+});
+
+app.get("/api/social-sync", async (req, res) => {
+  if (!isValidSocialSyncSecret(req.headers)) {
+    return res.status(401).json({ error: "Missing or invalid social sync cron secret." });
+  }
+  await runSocialSync(res);
 });
 
 

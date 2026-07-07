@@ -5,6 +5,10 @@ import {
   getAuditDb,
   setSecureApiHeaders
 } from './_firebaseAdmin.js';
+import {
+  getConfiguredSocialPages,
+  getConfiguredSocialSyncAccounts
+} from './_socialSync.js';
 
 type StoredAuditItem = {
   id: string;
@@ -33,7 +37,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         return bDate - aDate || String(b.id).localeCompare(String(a.id));
       });
 
-    return res.status(200).json({ auditItems });
+    const socialSync = getConfiguredSocialSyncAccounts();
+
+    return res.status(200).json({
+      auditItems,
+      socialPages: getConfiguredSocialPages(),
+      socialSync
+    });
   } catch (error) {
     console.error('Unable to read audit items', error);
     return res.status(500).json({ error: 'Workspace data could not be loaded.' });
