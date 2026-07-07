@@ -2,6 +2,23 @@ export type SocialPlatform = 'facebook' | 'instagram' | 'youtube';
 
 export type PlatformLinks = Partial<Record<SocialPlatform, string>>;
 
+export type AuditSource = 'manual' | 'meta-api' | 'youtube-api';
+
+export type SocialSyncPlatformStatus = {
+  linked: boolean;
+  ready: boolean;
+  missing: string[];
+};
+
+export type SocialSyncAccountStatus = {
+  id: string;
+  name: string;
+  author?: string;
+  state?: string;
+  pageLinks?: PlatformLinks;
+  platforms: Record<SocialPlatform, SocialSyncPlatformStatus>;
+};
+
 export interface AuditItem {
   id: string;
   title: string;
@@ -26,10 +43,19 @@ export interface AuditItem {
   createdByEmail?: string;
   updatedAt?: string;
   updatedByEmail?: string;
+  source?: AuditSource;
+  sourceId?: string;
+  sourceAccountId?: string;
+  syncedAt?: string;
 }
 
 export interface DashboardData {
   auditItems: AuditItem[];
+  socialPages?: SocialPage[];
+  socialSync?: {
+    accounts: SocialSyncAccountStatus[];
+    warnings: string[];
+  };
 }
 
 export const STATES_LIST = [

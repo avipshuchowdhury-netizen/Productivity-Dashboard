@@ -13,6 +13,7 @@ interface Props {
 }
 
 type ContributorMetric = 'performance' | 'posts' | 'views' | 'likes' | 'comments' | 'shares';
+type ContributorPlatformFilter = 'all' | AuditItem['platform'];
 
 type ContributorStat = {
   name: string;
@@ -22,7 +23,6 @@ type ContributorStat = {
   comments: number;
   shares: number;
   performance: number;
-  topPlatform: AuditItem['platform'];
 };
 
 export default function WorkspaceInsights({ 
@@ -33,7 +33,8 @@ export default function WorkspaceInsights({
   canGenerateReport = false
 }: Props) {
   const [selectedContributor, setSelectedContributor] = useState<string>('All Contributors');
-  const [selectedContributorMetric, setSelectedContributorMetric] = useState<ContributorMetric>('views');
+  const [selectedContributorMetric, setSelectedContributorMetric] = useState<ContributorMetric>('performance');
+  const [selectedContributorPlatform, setSelectedContributorPlatform] = useState<ContributorPlatformFilter>('all');
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
   const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
   const [reportNotice, setReportNotice] = useState('');
@@ -100,6 +101,15 @@ export default function WorkspaceInsights({
     instagram: 'Instagram',
     youtube: 'YouTube'
   };
+  const contributorPlatformOptions: Array<{ id: ContributorPlatformFilter; label: string }> = [
+    { id: 'all', label: 'All' },
+    { id: 'facebook', label: platformLabels.facebook },
+    { id: 'instagram', label: platformLabels.instagram },
+    { id: 'youtube', label: platformLabels.youtube }
+  ];
+  const contributorPlatformLabel = selectedContributorPlatform === 'all'
+    ? 'All platforms'
+    : platformLabels[selectedContributorPlatform];
   const contributorMetricLabels: Record<ContributorMetric, string> = {
     performance: 'Performance',
     posts: 'Posts',
@@ -192,7 +202,7 @@ export default function WorkspaceInsights({
   };
 
   // Timeline + State + Page Filter
-  const filteredTimelineAndStateData = activeAuditItemsWithDefaults.filter(item => {
+  const filteredTimelineStatePageData = activeAuditItemsWithDefaults.filter(item => {
     // 1. Timeline filter
     const itemTime = new Date(item.publishedAt).getTime();
     let matchesTimeline = true;
@@ -214,22 +224,25 @@ export default function WorkspaceInsights({
     // 3. Page Filter
     const matchesPage = selectedPage === 'All Pages' || item.page === selectedPage;
 
-    // 4. Platform Filter
-    const matchesPlatform = selectedPlatform === 'all' || item.platform === selectedPlatform;
-
-    return matchesTimeline && matchesState && matchesPage && matchesPlatform;
+    return matchesTimeline && matchesState && matchesPage;
   });
 
-  // Contributor stats based on the current timeline/state/page/platform context.
+  const filteredTimelineAndStateData = filteredTimelineStatePageData.filter(item => (
+    selectedPlatform === 'all' || item.platform === selectedPlatform
+  ));
+  const contributorLeaderboardData = selectedContributorPlatform === 'all'
+    ? filteredTimelineStatePageData
+    : filteredTimelineStatePageData.filter(item => item.platform === selectedContributorPlatform);
+
+  // Contributor stats are ranked from their own platform filter, defaulting to all platforms.
   const authorStatsMap: Record<string, {
     count: number;
     views: number;
     likes: number;
     comments: number;
     shares: number;
-    platforms: Record<AuditItem['platform'], number>;
   }> = {};
-  filteredTimelineAndStateData.forEach(item => {
+  contributorLeaderboardData.forEach(item => {
     const authorName = item.author || 'Unknown Contributor';
     if (!authorStatsMap[authorName]) {
       authorStatsMap[authorName] = {
@@ -238,7 +251,6 @@ export default function WorkspaceInsights({
         likes: 0,
         comments: 0,
         shares: 0,
-        platforms: { facebook: 0, instagram: 0, youtube: 0 }
       };
     }
     authorStatsMap[authorName].count += 1;
@@ -246,13 +258,10 @@ export default function WorkspaceInsights({
     authorStatsMap[authorName].likes += item.likes;
     authorStatsMap[authorName].comments += item.comments;
     authorStatsMap[authorName].shares += item.shares;
-    authorStatsMap[authorName].platforms[item.platform] += 1;
   });
 
   const authorStats: ContributorStat[] = Object.entries(authorStatsMap).map(([name, stats]) => {
     const performance = stats.views + stats.likes + stats.comments + stats.shares;
-    const topPlatform = (Object.entries(stats.platforms)
-      .sort((a, b) => b[1] - a[1])[0]?.[0] || 'facebook') as AuditItem['platform'];
     return {
       name,
       count: stats.count,
@@ -260,12 +269,13 @@ export default function WorkspaceInsights({
       likes: stats.likes,
       comments: stats.comments,
       shares: stats.shares,
-      performance,
-      topPlatform
+      performance
     };
   }).sort((a, b) => b.views - a.views);
 
-  const contributorOptions = authorStats.map(author => author.name);
+  const contributorOptions = Array.from(new Set(
+    filteredTimelineStatePageData.map(item => item.author || 'Unknown Contributor')
+  )).sort((a, b) => a.localeCompare(b));
   const contributorFilterValue = contributorOptions.includes(selectedContributor) ? selectedContributor : 'All Contributors';
   const focusedTimelineData = contributorFilterValue === 'All Contributors'
     ? filteredTimelineAndStateData
@@ -310,7 +320,6 @@ export default function WorkspaceInsights({
   const activeEntryCount = focusedTimelineData.length;
   const engagementTotal = totalLikes + totalComments + totalShares;
   const avgViewsPerEntry = activeEntryCount > 0 ? Math.round(totalViews / activeEntryCount) : 0;
-  const avgEngagementPerEntry = activeEntryCount > 0 ? Math.round(engagementTotal / activeEntryCount) : 0;
   const commentShareSignal = totalViews > 0 ? ((totalComments + totalShares) / totalViews) * 100 : 0;
   const selectedTimelineLabel = timelineLabels[selectedTimeline];
 
@@ -427,7 +436,7 @@ export default function WorkspaceInsights({
                 {formatCompact(totalViews)} views
               </span>
               <span className="rounded-full border border-[color-mix(in_srgb,var(--palette-accent-3)_38%,transparent)] bg-[color-mix(in_srgb,var(--palette-accent-3)_10%,transparent)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--palette-accent-3)]">
-                {authorStats.length} contributors
+                {contributorOptions.length} contributors
               </span>
             </div>
           </div>
@@ -607,10 +616,6 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {activeEntryCount} <span className="text-sm font-semibold text-slate-500">Units</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1.5 flex items-center justify-between gap-2">
-            <span>{selectedTimelineLabel}</span>
-            <span className="font-mono text-[var(--palette-accent)]">{authorStats.length} users</span>
-          </p>
         </div>
 
         {/* Metric 2: Views */}
@@ -624,10 +629,6 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalViews.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
-            <span>{focusedContributorStat ? focusedContributorStat.name : 'Current period'}</span>
-            <span className="font-mono text-[var(--palette-accent-2)]">{formatCompact(avgViewsPerEntry)} avg</span>
-          </p>
         </div>
 
         {/* Metric 3: Likes */}
@@ -641,10 +642,6 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalLikes.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
-            <span>Reactions recorded</span>
-            <span className="font-mono text-[var(--palette-accent-3)]">{formatCompact(avgEngagementPerEntry)} avg eng.</span>
-          </p>
         </div>
 
         {/* Metric 4: Comments */}
@@ -658,10 +655,6 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalComments.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
-            <span>Audience replies</span>
-            <span className="font-mono text-[#fb2d54]">{formatCompact(totalComments + totalShares)} action signal</span>
-          </p>
         </div>
 
         {/* Metric 5: Shares */}
@@ -675,10 +668,6 @@ export default function WorkspaceInsights({
           <div className="text-2xl font-display font-extrabold text-slate-900">
             {totalShares.toLocaleString()}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1.5 flex items-center justify-between gap-2">
-            <span>Forwarded content</span>
-            <span className="font-mono text-[var(--sci-violet)]">{commentShareSignal.toFixed(1)}% signal</span>
-          </p>
         </div>
 
       </div>
@@ -739,8 +728,8 @@ export default function WorkspaceInsights({
             <div className="mt-6">
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Top Contributors</h4>
               <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto pr-1">
-                {authorStats.length > 0 ? (
-                  authorStats.slice(0, 5).map((author, i) => (
+                {rankedAuthorStats.length > 0 ? (
+                  rankedAuthorStats.slice(0, 5).map((author, i) => (
                     <button
                       key={author.name}
                       onClick={() => setSelectedContributor(author.name)}
@@ -756,7 +745,6 @@ export default function WorkspaceInsights({
                         </div>
                         <div>
                           <span className="font-semibold text-slate-700 block">{author.name}</span>
-                          <span className="text-slate-400 block text-[10px]">{platformLabels[author.topPlatform]} focus</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -783,25 +771,45 @@ export default function WorkspaceInsights({
       {/* Contributor-wise Performance */}
       <div id="contributor-performance" className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         <div className="xl:col-span-3 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Leaderboard</h3>
-              <p className="text-xs text-slate-400">Ranked by the selected metric and current filters.</p>
+          <div className="mb-5 flex flex-col gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Leaderboard</h3>
+                <p className="text-xs text-slate-400">Ranked by {contributorMetricLabels[selectedContributorMetric].toLowerCase()} across {contributorPlatformLabel.toLowerCase()}.</p>
+              </div>
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
+                {(['performance', 'posts', 'views', 'likes', 'comments', 'shares'] as const).map(metric => (
+                  <button
+                    key={metric}
+                    onClick={() => setSelectedContributorMetric(metric)}
+                    className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer whitespace-nowrap ${
+                      selectedContributorMetric === metric
+                        ? `${theme.primaryBg} text-white shadow-2xs`
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {contributorMetricLabels[metric]}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
-              {(['performance', 'posts', 'views', 'likes', 'comments', 'shares'] as const).map(metric => (
-                <button
-                  key={metric}
-                  onClick={() => setSelectedContributorMetric(metric)}
-                  className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer whitespace-nowrap ${
-                    selectedContributorMetric === metric
-                      ? `${theme.primaryBg} text-white shadow-2xs`
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {contributorMetricLabels[metric]}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Leaderboard:</span>
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs text-center overflow-x-auto">
+                {contributorPlatformOptions.map(option => (
+                  <button
+                    key={option.id}
+                    onClick={() => setSelectedContributorPlatform(option.id)}
+                    className={`px-3 py-1 font-bold uppercase rounded-md transition cursor-pointer whitespace-nowrap ${
+                      selectedContributorPlatform === option.id
+                        ? `${theme.primaryBg} text-white shadow-2xs`
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -822,7 +830,7 @@ export default function WorkspaceInsights({
                       {leaderboardLeader.name}
                     </div>
                     <div className="mt-1 text-[11px] text-[#6c3a2f]">
-                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts and {platformLabels[leaderboardLeader.topPlatform]} focus.
+                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} across {contributorPlatformLabel.toLowerCase()} with {leaderboardLeader.count} posts.
                     </div>
                   </div>
                 </div>
@@ -891,7 +899,7 @@ export default function WorkspaceInsights({
                             )}
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                            {author.count} posts / {platformLabels[author.topPlatform]}
+                            {author.count} posts
                           </div>
                         </div>
                       </div>
