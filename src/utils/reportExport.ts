@@ -96,6 +96,14 @@ const metricCard = (label: string, value: string, helper: string) => `
   </article>
 `;
 
+const snapshotCard = (label: string, value: string, helper: string) => `
+  <article class="snapshot-card">
+    <span>${escapeHtml(label)}</span>
+    <strong>${escapeHtml(value)}</strong>
+    <small>${escapeHtml(helper)}</small>
+  </article>
+`;
+
 const platformLogo = (platform: Platform) => {
   const meta = platformMeta[platform];
   const icons: Record<Platform, string> = {
@@ -134,7 +142,7 @@ const renderPlatformSection = (item: ReportPlatformBreakdown, maxViews: number) 
         ${platformLogo(item.platform)}
         <div>
           <h3>${escapeHtml(meta.label)}</h3>
-          <p>${item.entries} entries · ${formatCompact(item.views)} views</p>
+          <p>${item.entries} entries - ${formatCompact(item.views)} views</p>
         </div>
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
@@ -197,12 +205,38 @@ const renderContributorPodium = (input: WorkspaceReportInput) => {
   return cards || '<p class="empty-state">No contributor data available.</p>';
 };
 
+const renderExecutiveSnapshot = (input: WorkspaceReportInput) => {
+  const topContributor = input.contributors[0];
+  const bestPlatform = [...input.platformBreakdown].sort((a, b) => b.views - a.views)[0];
+  const topPost = input.topPosts[0];
+  const topContributorMetric = topContributor
+    ? formatCompact(contributorMetricValue(topContributor, input.leaderboard.metric))
+    : 'No data';
+  const bestPlatformLabel = bestPlatform ? platformMeta[bestPlatform.platform].label : 'No data';
+  const bestPlatformHelper = bestPlatform
+    ? `${formatCompact(bestPlatform.views)} views from ${bestPlatform.entries} entries`
+    : 'No channel activity';
+  const topPostTitle = topPost?.title || 'No content data';
+  const topPostHelper = topPost
+    ? `${formatCompact(topPost.views)} views - ${platformMeta[topPost.platform].label}`
+    : 'No posts in current filters';
+
+  return `
+    <section class="snapshot">
+      ${snapshotCard('Top contributor', topContributor?.name || 'No data', `${input.leaderboard.metricLabel}: ${topContributorMetric}`)}
+      ${snapshotCard('Best channel', bestPlatformLabel, bestPlatformHelper)}
+      ${snapshotCard('Top content', topPostTitle, topPostHelper)}
+      ${snapshotCard('Action signal', `${input.metrics.actionSignalRate.toFixed(1)}%`, 'comments + shares / views')}
+    </section>
+  `;
+};
+
 const renderReportHtml = (input: WorkspaceReportInput) => {
   const maxPlatformViews = Math.max(...input.platformBreakdown.map(item => item.views), 1);
   const topContributorRows = input.contributors.slice(0, 8).map((contributor, index) => `
     <tr>
-      <td>${index + 1}</td>
-      <td>${escapeHtml(contributor.name)}</td>
+      <td><span class="rank-pill">${index + 1}</span></td>
+      <td><strong>${escapeHtml(contributor.name)}</strong></td>
       <td>${contributor.count}</td>
       <td>${formatCompact(contributorMetricValue(contributor, input.leaderboard.metric))}</td>
       <td>${formatCompact(contributor.views)}</td>
@@ -219,11 +253,11 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         <td>${index + 1}</td>
         <td>
           <strong>${anchor(post.title, postUrl, 'post-link')}</strong>
-          <small>${postUrl ? anchor('Open live post', postUrl, 'inline-link') : 'No live post URL attached'} · ${escapeHtml(post.format)}</small>
+          <small>${postUrl ? anchor('Open live post', postUrl, 'inline-link') : 'No live post URL attached'} - ${escapeHtml(post.format)}</small>
         </td>
         <td>${platformLogo(post.platform)} ${escapeHtml(platformMeta[post.platform].label)}</td>
         <td>${anchor(pageLabel, pageUrl, 'page-link')}<small>${escapeHtml(post.state || 'No state')}</small></td>
-        <td>${escapeHtml(post.author)}</td>
+        <td>${escapeHtml(post.author || 'Unknown Contributor')}</td>
         <td>${formatCompact(post.views)}</td>
         <td>${formatCompact(post.likes + post.comments + post.shares)}</td>
       </tr>
@@ -236,27 +270,47 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
     <meta charset="utf-8" />
     <title>SAMARTH Performance Report</title>
     <style>
-      @page { size: A4; margin: 14mm; }
+      @page { size: A4; margin: 12mm; }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        background: #fffaf7;
-        color: #241815;
+        background: #f5f7fb;
+        color: #182230;
         font-family: Inter, Arial, sans-serif;
+        font-size: 10.5px;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
       .report {
         width: 100%;
-        background: #fffaf7;
+        background: #f5f7fb;
       }
       .cover {
-        border: 1px solid #ffc0b3;
+        border: 1px solid #dce6f2;
         background:
-          linear-gradient(135deg, rgba(232, 63, 35, 0.12), rgba(255, 250, 247, 0.94) 42%, rgba(38, 184, 255, 0.08)),
-          repeating-linear-gradient(90deg, rgba(232, 63, 35, 0.06) 0 1px, transparent 1px 34px);
-        padding: 24px;
-        border-radius: 14px;
+          linear-gradient(135deg, rgba(232, 63, 35, 0.12), rgba(255, 255, 255, 0.96) 44%, rgba(38, 184, 255, 0.1)),
+          repeating-linear-gradient(90deg, rgba(24, 34, 48, 0.04) 0 1px, transparent 1px 34px);
+        padding: 22px;
+        border-radius: 16px;
+        page-break-inside: avoid;
+      }
+      .cover-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+      }
+      .report-stamp {
+        border: 1px solid #ffd1c8;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.76);
+        color: #d7351c;
+        padding: 7px 10px;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
       }
       .eyebrow {
         color: #e83f23;
@@ -267,38 +321,42 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       h1 {
         margin: 10px 0 4px;
-        font-size: 34px;
+        color: #111827;
+        font-size: 32px;
         letter-spacing: -0.02em;
         line-height: 1;
       }
       .subtitle {
         margin: 0;
-        color: #7f574c;
+        max-width: 620px;
+        color: #526071;
         font-size: 13px;
         font-weight: 700;
       }
       .meta-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
-        margin-top: 20px;
+        margin-top: 18px;
       }
       .meta-grid div,
       .metric-card,
+      .snapshot-card,
       .platform-card,
       .section {
-        background: rgba(255, 255, 255, 0.82);
-        border: 1px solid #ffd1c8;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
       }
       .meta-grid div {
-        padding: 10px 12px;
+        padding: 9px 10px;
       }
       .meta-grid span,
+      .snapshot-card span,
       .metric-card span,
       .platform-grid span {
         display: block;
-        color: #8f6b61;
+        color: #758195;
         font-size: 9px;
         font-weight: 900;
         letter-spacing: 0.12em;
@@ -307,37 +365,65 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       .meta-grid strong {
         display: block;
         margin-top: 4px;
-        font-size: 12px;
+        color: #182230;
+        font-size: 11px;
+        line-height: 1.25;
       }
-      .metrics {
+      .snapshot {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
         margin-top: 14px;
       }
+      .snapshot-card {
+        min-height: 82px;
+        padding: 12px;
+      }
+      .snapshot-card strong {
+        display: block;
+        margin-top: 7px;
+        color: #111827;
+        font-size: 15px;
+        line-height: 1.1;
+      }
+      .snapshot-card small {
+        display: block;
+        margin-top: 6px;
+        color: #526071;
+        font-size: 9px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 14px;
+      }
       .metric-card {
-        padding: 14px;
-        min-height: 92px;
+        padding: 12px;
+        min-height: 78px;
       }
       .metric-card strong {
         display: block;
-        margin: 8px 0 5px;
-        font-size: 22px;
+        margin: 7px 0 4px;
+        color: #111827;
+        font-size: 20px;
         line-height: 1;
       }
       .metric-card small {
-        color: #7f574c;
-        font-size: 10px;
+        color: #526071;
+        font-size: 9px;
         font-weight: 700;
       }
       .section {
         margin-top: 14px;
-        padding: 18px;
+        padding: 16px;
         page-break-inside: avoid;
       }
       .section h2 {
         margin: 0 0 12px;
-        color: #241815;
+        color: #111827;
         font-size: 15px;
         letter-spacing: 0.1em;
         text-transform: uppercase;
@@ -353,7 +439,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         margin-bottom: 0;
       }
       .leaderboard-context {
-        color: #8f6b61;
+        color: #758195;
         font-size: 9px;
         font-weight: 900;
         letter-spacing: 0.1em;
@@ -383,7 +469,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       .platform-heading p {
         margin: 2px 0 0;
-        color: #6e5a54;
+        color: #526071;
         font-size: 10px;
         font-weight: 800;
       }
@@ -437,7 +523,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       .bar-track {
         overflow: hidden;
         border-radius: 999px;
-        background: #f1e6e2;
+        background: #e8eef6;
       }
       .bar-track {
         height: 8px;
@@ -471,9 +557,9 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         margin-bottom: 14px;
       }
       .podium-card {
-        border: 1px solid #ead4c8;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
-        background: linear-gradient(180deg, #ffffff 0%, #fffaf7 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         padding: 12px;
         text-align: center;
         page-break-inside: avoid;
@@ -519,7 +605,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         left: 0;
         right: 0;
         top: 17px;
-        color: #241815;
+        color: #182230;
         font-size: 9px;
         line-height: 1;
       }
@@ -537,7 +623,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       .podium-name {
         overflow: hidden;
-        color: #241815;
+        color: #111827;
         font-size: 12px;
         font-weight: 900;
         text-overflow: ellipsis;
@@ -580,9 +666,16 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         width: 100%;
         border-collapse: collapse;
         font-size: 10px;
+        table-layout: fixed;
+      }
+      .report-table thead {
+        display: table-header-group;
+      }
+      .report-table tr {
+        page-break-inside: avoid;
       }
       .report-table th {
-        color: #8f6b61;
+        color: #758195;
         font-size: 9px;
         letter-spacing: 0.1em;
         text-align: left;
@@ -590,19 +683,51 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       .report-table th,
       .report-table td {
-        border-bottom: 1px solid #f0d8d1;
+        border-bottom: 1px solid #e6edf5;
         padding: 8px 6px;
         vertical-align: middle;
+        overflow-wrap: anywhere;
+      }
+      .report-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+      }
+      .rank-column {
+        width: 32px;
+      }
+      .contributor-column {
+        width: 30%;
+      }
+      .content-column {
+        width: 32%;
+      }
+      .platform-column {
+        width: 88px;
+      }
+      .small-number-column {
+        width: 70px;
       }
       .report-table td strong {
         display: block;
         font-size: 10px;
+        line-height: 1.35;
       }
       .report-table td small {
         display: block;
         margin-top: 2px;
-        color: #8f6b61;
+        color: #758195;
         font-size: 9px;
+      }
+      .rank-pill {
+        display: inline-flex;
+        min-width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #fff1e8;
+        color: #d7351c;
+        font-size: 9px;
+        font-weight: 900;
       }
       .report-table a {
         color: #d7351c;
@@ -613,7 +738,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         text-decoration: underline;
       }
       .report-table .post-link {
-        color: #241815;
+        color: #111827;
       }
       .report-table .page-link,
       .report-table .inline-link {
@@ -621,7 +746,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       }
       footer {
         margin-top: 16px;
-        color: #8f6b61;
+        color: #758195;
         font-size: 9px;
         font-weight: 700;
         text-align: center;
@@ -647,6 +772,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         body { background: white; }
         .report { background: white; }
         .print-button { display: none; }
+        a { color: inherit; }
       }
     </style>
   </head>
@@ -654,9 +780,14 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
     <button class="print-button" onclick="window.print()">Print / Save PDF</button>
     <main class="report">
       <section class="cover">
-        <div class="eyebrow">SAMARTH Report</div>
-        <h1>Social Performance Report</h1>
-        <p class="subtitle">Single Admin Managed AI Run Thematic Handles · Generated ${escapeHtml(input.generatedAt)}</p>
+        <div class="cover-top">
+          <div>
+            <div class="eyebrow">SAMARTH Report</div>
+            <h1>Social Performance Report</h1>
+            <p class="subtitle">Single Admin Managed AI Run Thematic Handles - generated ${escapeHtml(input.generatedAt)}</p>
+          </div>
+          <div class="report-stamp">${escapeHtml(input.filters.timeline)}</div>
+        </div>
         <div class="meta-grid">
           <div><span>Date Range</span><strong>${escapeHtml(input.dateRangeLabel)}</strong></div>
           <div><span>Timeline</span><strong>${escapeHtml(input.filters.timeline)}</strong></div>
@@ -666,6 +797,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
           <div><span>Contributor</span><strong>${escapeHtml(input.filters.contributor)}</strong></div>
           <div><span>Leaderboard</span><strong>${escapeHtml(input.leaderboard.metricLabel)} - ${escapeHtml(input.leaderboard.platform)}</strong></div>
         </div>
+        ${renderExecutiveSnapshot(input)}
         <div class="metrics">
           ${metricCard('Contents Published', formatNumber(input.metrics.entries), 'active records in range')}
           ${metricCard('Views', formatNumber(input.metrics.views), `${formatCompact(input.metrics.avgViews)} avg per entry`)}
@@ -693,7 +825,15 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         <div class="contributor-podium">
           ${renderContributorPodium(input)}
         </div>
-        <table class="report-table">
+        <table class="report-table contributors-table">
+          <colgroup>
+            <col class="rank-column" />
+            <col class="contributor-column" />
+            <col class="small-number-column" />
+            <col />
+            <col />
+            <col />
+          </colgroup>
           <thead><tr><th>#</th><th>Contributor</th><th>Posts</th><th>${escapeHtml(input.leaderboard.metricLabel)}</th><th>Views</th><th>Engagement</th></tr></thead>
           <tbody>${topContributorRows || '<tr><td colspan="6">No contributor data available.</td></tr>'}</tbody>
         </table>
@@ -701,13 +841,22 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
 
       <section class="section">
         <h2>Top Content</h2>
-        <table class="report-table">
-          <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Page</th><th>Contributor</th><th>Views</th><th>Engagement</th></tr></thead>
+        <table class="report-table content-table">
+          <colgroup>
+            <col class="rank-column" />
+            <col class="content-column" />
+            <col class="platform-column" />
+            <col />
+            <col />
+            <col class="small-number-column" />
+            <col class="small-number-column" />
+          </colgroup>
+          <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Page</th><th>Contributor</th><th>Views</th><th>Eng.</th></tr></thead>
           <tbody>${topPostRows || '<tr><td colspan="7">No content data available.</td></tr>'}</tbody>
         </table>
       </section>
 
-      <footer>Prepared by SAMARTH Workspace · Export reflects selected dashboard filters at generation time.</footer>
+      <footer>Prepared by SAMARTH Workspace - export reflects selected dashboard filters at generation time.</footer>
     </main>
     <script>
       window.addEventListener('load', () => {
