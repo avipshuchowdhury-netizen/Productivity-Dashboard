@@ -36,7 +36,6 @@ export default function WorkspaceInsights({
   const [selectedContributorMetric, setSelectedContributorMetric] = useState<ContributorMetric>('performance');
   const [selectedContributorPlatform, setSelectedContributorPlatform] = useState<ContributorPlatformFilter>('all');
   const [hoveredContributor, setHoveredContributor] = useState<string | null>(null);
-  const [hoveredMetricContributor, setHoveredMetricContributor] = useState<string | null>(null);
   const [reportNotice, setReportNotice] = useState('');
   const selectedPlatform = activePlatform;
   const setSelectedPlatform = onChangePlatform;
@@ -124,14 +123,6 @@ export default function WorkspaceInsights({
     return Math.round(value).toLocaleString();
   };
   const isArchived = (item: AuditItem) => Boolean(item.archivedAt);
-  const getInitials = (name: string) => name
-    .split(' ')
-    .filter(Boolean)
-    .map(part => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'C';
-
   // Timeline selection
   const [selectedTimeline, setSelectedTimeline] = useState<'7d' | '15d' | '30d' | '90d' | 'custom'>('7d');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -280,9 +271,6 @@ export default function WorkspaceInsights({
   const focusedTimelineData = contributorFilterValue === 'All Contributors'
     ? filteredTimelineAndStateData
     : filteredTimelineAndStateData.filter(item => (item.author || 'Unknown Contributor') === contributorFilterValue);
-  const focusedContributorStat = contributorFilterValue === 'All Contributors'
-    ? null
-    : authorStats.find(author => author.name === contributorFilterValue) || null;
 
   const getContributorMetricValue = (stat: ContributorStat) => {
     switch (selectedContributorMetric) {
@@ -303,14 +291,6 @@ export default function WorkspaceInsights({
   const formatContributorMetric = (value: number) => formatCompact(value);
   const rankedAuthorStats = [...authorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
   const maxContributorMetric = Math.max(...rankedAuthorStats.map(getContributorMetricValue), 1);
-  const maxContributorViews = Math.max(...authorStats.map(author => author.views), 1);
-  const maxContributorLikes = Math.max(...authorStats.map(author => author.likes), 1);
-  const maxContributorComments = Math.max(...authorStats.map(author => author.comments), 1);
-  const maxContributorShares = Math.max(...authorStats.map(author => author.shares), 1);
-  const detailContributor = authorStats.find(author => author.name === hoveredMetricContributor)
-    || focusedContributorStat
-    || rankedAuthorStats[0]
-    || null;
 
   // Metrics calculations
   const totalViews = focusedTimelineData.reduce((acc, item) => acc + item.views, 0);
@@ -769,8 +749,8 @@ export default function WorkspaceInsights({
       </div>
 
       {/* Contributor-wise Performance */}
-      <div id="contributor-performance" className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-3 p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
+      <div id="contributor-performance">
+        <div className="p-5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
           <div className="mb-5 flex flex-col gap-3">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
@@ -936,96 +916,6 @@ export default function WorkspaceInsights({
               No contributor data yet.
             </div>
           )}
-        </div>
-
-        <div className="xl:col-span-2 p-5 bg-[#e6f0ff] border border-[#9fc0ff] rounded-xl shadow-xs">
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Contributor Metric Comparison</h3>
-            <p className="text-xs text-slate-400 mt-1">Side-by-side bars for views, likes, comments, and shares.</p>
-          </div>
-
-          {detailContributor ? (
-            <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Selected</div>
-                <div className="mt-1 font-extrabold text-slate-800 truncate">{detailContributor.name}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Performance</div>
-                <div className="mt-1 font-extrabold text-slate-800">{formatCompact(detailContributor.performance)}</div>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-5 text-xs text-slate-400">No contributor data yet.</div>
-          )}
-
-          <div className="mt-5 space-y-4 max-h-96 overflow-y-auto pr-1">
-            {rankedAuthorStats.map(author => {
-              const isActive = contributorFilterValue === author.name;
-              const isHovered = hoveredMetricContributor === author.name;
-              const metrics = [
-                { label: 'Views', value: author.views, max: maxContributorViews, color: theme.chartFill },
-                { label: 'Likes', value: author.likes, max: maxContributorLikes, color: '#4a90e2' },
-                { label: 'Comments', value: author.comments, max: maxContributorComments, color: '#34c771' },
-                { label: 'Shares', value: author.shares, max: maxContributorShares, color: '#fb2d54' }
-              ];
-
-              return (
-                <button
-                  key={author.name}
-                  onClick={() => setSelectedContributor(author.name)}
-                  onMouseEnter={() => setHoveredMetricContributor(author.name)}
-                  onMouseLeave={() => setHoveredMetricContributor(null)}
-                  onFocus={() => setHoveredMetricContributor(author.name)}
-                  onBlur={() => setHoveredMetricContributor(null)}
-                  className={`w-full rounded-lg border p-3 text-left transition ${
-                    isActive || isHovered ? `${theme.accentBorder} ${theme.lightBg}` : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 ${
-                        isActive ? `${theme.primaryBg} text-white` : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {getInitials(author.name)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-xs text-slate-800 truncate">{author.name}</div>
-                        <div className="text-[10px] text-slate-400">{author.count} posts</div>
-                      </div>
-                    </div>
-                    <Trophy className={`w-4 h-4 shrink-0 ${theme.primaryText}`} />
-                  </div>
-
-                  <div className="mt-3 space-y-2">
-                    {metrics.map(metric => (
-                      <div key={metric.label}>
-                        <div className="mb-1 flex items-center justify-between text-[10px] font-semibold text-slate-500">
-                          <span>{metric.label}</span>
-                          <span>{formatCompact(metric.value)}</span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${metric.value > 0 ? Math.max(5, (metric.value / metric.max) * 100) : 0}%`,
-                              backgroundColor: metric.color
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-
-            {rankedAuthorStats.length === 0 && (
-              <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
-                No contributor data yet.
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
