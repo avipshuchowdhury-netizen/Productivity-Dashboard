@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { ArrowDown, ArrowUp, Minus, TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, FileText } from 'lucide-react';
+import { Medal, TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, FileText } from 'lucide-react';
 import { generateWorkspaceReportPdf } from '../utils/reportExport';
 import { socialPageUrlForPlatform } from '../utils/socialLinks';
 
@@ -23,12 +23,6 @@ type ContributorStat = {
   comments: number;
   shares: number;
   performance: number;
-};
-
-type RankMovement = {
-  direction: 'up' | 'down' | 'same' | 'new';
-  delta: number;
-  label: string;
 };
 
 export default function WorkspaceInsights({ 
@@ -212,14 +206,6 @@ export default function WorkspaceInsights({
     return { start, end: new Date(refDate) };
   };
   const currentPeriodRange = getCurrentPeriodRange();
-  const previousPeriodRange = currentPeriodRange
-    ? (() => {
-        const durationMs = Math.max(86_400_000, currentPeriodRange.end.getTime() - currentPeriodRange.start.getTime());
-        const end = new Date(currentPeriodRange.start.getTime() - 1);
-        const start = new Date(end.getTime() - durationMs);
-        return { start, end };
-      })()
-    : null;
 
   // Timeline + State + Page Filter
   const filteredTimelineStatePageData = activeAuditItemsWithDefaults.filter(item => {
@@ -237,15 +223,6 @@ export default function WorkspaceInsights({
 
     return matchesTimeline && matchesState && matchesPage;
   });
-  const previousTimelineStatePageData = previousPeriodRange
-    ? activeAuditItemsWithDefaults.filter(item => {
-        const itemTime = new Date(item.publishedAt).getTime();
-        const matchesTimeline = itemTime >= previousPeriodRange.start.getTime() && itemTime <= previousPeriodRange.end.getTime();
-        const matchesState = selectedState === 'All States' || item.state === selectedState;
-        const matchesPage = selectedPage === 'All Pages' || item.page === selectedPage;
-        return matchesTimeline && matchesState && matchesPage;
-      })
-    : [];
 
   const filteredTimelineAndStateData = filteredTimelineStatePageData.filter(item => (
     selectedPlatform === 'all' || item.platform === selectedPlatform
@@ -253,9 +230,6 @@ export default function WorkspaceInsights({
   const contributorLeaderboardData = selectedContributorPlatform === 'all'
     ? filteredTimelineStatePageData
     : filteredTimelineStatePageData.filter(item => item.platform === selectedContributorPlatform);
-  const previousContributorLeaderboardData = selectedContributorPlatform === 'all'
-    ? previousTimelineStatePageData
-    : previousTimelineStatePageData.filter(item => item.platform === selectedContributorPlatform);
 
   const buildContributorStats = (items: AuditItem[]): ContributorStat[] => {
     const statsMap: Record<string, {
@@ -328,32 +302,17 @@ export default function WorkspaceInsights({
   const formatContributorMetric = (value: number) => formatCompact(value);
   const rankedAuthorStats = [...authorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
   const maxContributorMetric = Math.max(...rankedAuthorStats.map(getContributorMetricValue), 1);
-  const previousAuthorStats = buildContributorStats(previousContributorLeaderboardData);
-  const previousRankedAuthorStats = [...previousAuthorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
-  const previousRankByName = new Map(previousRankedAuthorStats.map((author, index) => [author.name, index + 1]));
-  const podiumStats = rankedAuthorStats.slice(0, 3);
-  const getRankMovement = (name: string, currentRank: number): RankMovement => {
-    const previousRank = previousRankByName.get(name);
-    if (!previousRank) return { direction: 'new', delta: 0, label: 'New' };
-    const delta = previousRank - currentRank;
-    if (delta > 0) return { direction: 'up', delta, label: `+${delta}` };
-    if (delta < 0) return { direction: 'down', delta: Math.abs(delta), label: `-${Math.abs(delta)}` };
-    return { direction: 'same', delta: 0, label: 'Hold' };
-  };
-  const getGapToOvertake = (index: number) => {
-    if (index <= 0 || !rankedAuthorStats[index - 1] || !rankedAuthorStats[index]) return 0;
-    return Math.max(1, getContributorMetricValue(rankedAuthorStats[index - 1]) - getContributorMetricValue(rankedAuthorStats[index]) + 1);
-  };
-  const getLeaderMargin = () => {
-    if (rankedAuthorStats.length < 2) return 0;
-    return Math.max(0, getContributorMetricValue(rankedAuthorStats[0]) - getContributorMetricValue(rankedAuthorStats[1]));
-  };
-  const getRankMovementClasses = (movement: RankMovement) => {
-    if (movement.direction === 'up') return 'border-[#34c771]/40 bg-[#34c771]/10 text-[#168542]';
-    if (movement.direction === 'down') return 'border-[#fb2d54]/35 bg-[#fb2d54]/10 text-[#b81235]';
-    if (movement.direction === 'new') return 'border-[#477ee9]/35 bg-[#477ee9]/10 text-[#285bbf]';
-    return 'border-slate-200 bg-white text-slate-500';
-  };
+  const podiumSlots = [
+    { rank: 2, author: rankedAuthorStats[1], color: '#94a3b8', soft: '#f1f5f9', height: 'h-24 lg:h-28' },
+    { rank: 1, author: rankedAuthorStats[0], color: '#f5b544', soft: '#fff7db', height: 'h-32 lg:h-40' },
+    { rank: 3, author: rankedAuthorStats[2], color: '#b7793d', soft: '#fff1df', height: 'h-20 lg:h-24' }
+  ].filter((slot): slot is {
+    rank: number;
+    author: ContributorStat;
+    color: string;
+    soft: string;
+    height: string;
+  } => Boolean(slot.author));
 
   // Metrics calculations
   const totalViews = focusedTimelineData.reduce((acc, item) => acc + item.views, 0);
@@ -388,15 +347,10 @@ export default function WorkspaceInsights({
     shares: items.reduce((acc, item) => acc + item.shares, 0)
   }));
 
-  const getRankLabel = (index: number) => {
-    if (index === 0) return 'Champion';
-    if (index === 1) return 'Runner-up';
-    return '';
-  };
   const getRankAccent = (index: number) => {
-    if (index === 0) return '#f73b20';
-    if (index === 1) return '#477ee9';
-    if (index === 2) return '#34c771';
+    if (index === 0) return '#f5b544';
+    if (index === 1) return '#94a3b8';
+    if (index === 2) return '#b7793d';
     return '#fb2d54';
   };
   const selectedPageLinks = selectedPage !== 'All Pages'
@@ -854,77 +808,56 @@ export default function WorkspaceInsights({
             </div>
           </div>
 
-          {podiumStats.length > 0 && (
-            <div className="mb-5 grid gap-3 lg:grid-cols-3">
-              {podiumStats.map((author, index) => {
-                const metricValue = getContributorMetricValue(author);
-                const rankAccent = getRankAccent(index);
-                const rankMovement = getRankMovement(author.name, index + 1);
-                const gapToOvertake = getGapToOvertake(index);
-                const leaderMargin = getLeaderMargin();
+          {podiumSlots.length > 0 && (
+            <div className="mb-5 rounded-xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+                {podiumSlots.map(slot => {
+                  const metricValue = getContributorMetricValue(slot.author);
 
-                return (
-                  <button
-                    key={author.name}
-                    type="button"
-                    onClick={() => setSelectedContributor(author.name)}
-                    className={`rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
-                      index === 0
-                        ? 'border-[#f8a4a4] bg-[linear-gradient(135deg,#fbdfd9_0%,#fffaf8_58%,#e6f0ff_100%)]'
-                        : 'border-slate-200 bg-slate-50 hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold text-white"
-                        style={{ backgroundColor: rankAccent }}
-                      >
-                        #{index + 1}
-                      </span>
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase ${getRankMovementClasses(rankMovement)}`}>
-                        {rankMovement.direction === 'up' ? (
-                          <ArrowUp className="h-3 w-3" />
-                        ) : rankMovement.direction === 'down' ? (
-                          <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <Minus className="h-3 w-3" />
-                        )}
-                        {rankMovement.label}
-                      </span>
-                    </div>
-                    <div className="mt-3 min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        {index === 0 ? 'Race Leader' : 'Chasing Position'}
-                      </div>
-                      <div className="mt-1 truncate text-base font-display font-semibold text-slate-900">
-                        {author.name}
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-end justify-between gap-3">
-                      <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          {contributorMetricLabels[selectedContributorMetric]}
+                  return (
+                    <button
+                      key={slot.author.name}
+                      type="button"
+                      aria-label={`Rank ${slot.rank}: ${slot.author.name}`}
+                      onClick={() => setSelectedContributor(slot.author.name)}
+                      className={`group flex h-full flex-col justify-end rounded-lg border bg-white/90 p-3 text-center transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm ${
+                        slot.rank === 1 ? 'sm:-mt-4' : ''
+                      }`}
+                      style={{ borderColor: `${slot.color}66` }}
+                    >
+                      <div className="min-w-0">
+                        <div
+                          className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full border"
+                          style={{
+                            backgroundColor: slot.soft,
+                            borderColor: slot.color,
+                            color: slot.color
+                          }}
+                        >
+                          <Medal className="h-6 w-6" />
                         </div>
-                        <div className="text-2xl font-display font-semibold text-[#360802]">
+                        <div className="truncate text-sm font-bold text-slate-900">
+                          {slot.author.name}
+                        </div>
+                        <div className="mt-1 text-xs font-extrabold" style={{ color: slot.color }}>
                           {formatContributorMetric(metricValue)}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          {index === 0 ? 'Lead' : 'Gap'}
-                        </div>
-                        <div className="text-sm font-extrabold" style={{ color: rankAccent }}>
-                          {index === 0
-                            ? rankedAuthorStats.length > 1
-                              ? `+${formatContributorMetric(leaderMargin)}`
-                              : 'Solo'
-                            : formatContributorMetric(gapToOvertake)}
-                        </div>
+                      <div
+                        className={`${slot.height} mt-3 flex items-end justify-center rounded-t-lg border px-4 pb-3 shadow-inner`}
+                        style={{
+                          background: `linear-gradient(180deg, ${slot.color} 0%, ${slot.color}dd 100%)`,
+                          borderColor: slot.color
+                        }}
+                      >
+                        <span className="font-display text-4xl font-semibold leading-none text-white">
+                          {slot.rank}
+                        </span>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -936,9 +869,7 @@ export default function WorkspaceInsights({
                 const isActive = contributorFilterValue === author.name;
                 const isHovered = hoveredContributor === author.name;
                 const rankAccent = getRankAccent(index);
-                const rankLabel = getRankLabel(index);
-                const rankMovement = getRankMovement(author.name, index + 1);
-                const gapToOvertake = getGapToOvertake(index);
+                const isMedalRank = index < 3;
 
                 return (
                   <button
@@ -950,7 +881,7 @@ export default function WorkspaceInsights({
                     onBlur={() => setHoveredContributor(null)}
                     className={`w-full rounded-lg border px-3 py-3 text-left transition relative overflow-hidden ${
                       index === 0
-                        ? 'border-[#f8a4a4] bg-[#fffaf8] hover:bg-[#fbdfd9]'
+                        ? 'border-[#f5b544]/60 bg-[#fffaf0] hover:bg-[#fff7db]'
                         : isActive || isHovered
                           ? `${theme.accentBorder} ${theme.lightBg}`
                           : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
@@ -966,8 +897,8 @@ export default function WorkspaceInsights({
                           className="w-10 h-10 rounded-full flex shrink-0 items-center justify-center text-xs font-extrabold border"
                           style={{
                             borderColor: rankAccent,
-                            color: index === 0 ? '#ffffff' : rankAccent,
-                            backgroundColor: index === 0 ? '#f73b20' : '#fffaf8'
+                            color: isMedalRank ? '#ffffff' : rankAccent,
+                            backgroundColor: isMedalRank ? rankAccent : '#fffaf8'
                           }}
                         >
                           #{index + 1}
@@ -975,24 +906,6 @@ export default function WorkspaceInsights({
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="font-bold text-sm text-slate-800 truncate">{author.name}</div>
-                            {rankLabel && (
-                              <span
-                                className="rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                                style={{ borderColor: rankAccent, color: rankAccent }}
-                              >
-                                {rankLabel}
-                              </span>
-                            )}
-                            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getRankMovementClasses(rankMovement)}`}>
-                              {rankMovement.direction === 'up' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : rankMovement.direction === 'down' ? (
-                                <ArrowDown className="h-3 w-3" />
-                              ) : (
-                                <Minus className="h-3 w-3" />
-                              )}
-                              {rankMovement.label}
-                            </span>
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
                             {author.count} posts
@@ -1005,9 +918,6 @@ export default function WorkspaceInsights({
                         </div>
                         <div className="text-[10px] text-slate-400 uppercase tracking-wider">
                           {contributorMetricLabels[selectedContributorMetric]}
-                        </div>
-                        <div className="mt-1 text-[10px] font-bold text-slate-500">
-                          {index === 0 ? 'Top spot' : `Gap ${formatContributorMetric(gapToOvertake)}`}
                         </div>
                       </div>
                     </div>
