@@ -22,7 +22,6 @@ type ContributorStat = {
   comments: number;
   shares: number;
   performance: number;
-  topPlatform: AuditItem['platform'];
 };
 
 export default function WorkspaceInsights({ 
@@ -227,7 +226,6 @@ export default function WorkspaceInsights({
     likes: number;
     comments: number;
     shares: number;
-    platforms: Record<AuditItem['platform'], number>;
   }> = {};
   filteredTimelineAndStateData.forEach(item => {
     const authorName = item.author || 'Unknown Contributor';
@@ -238,7 +236,6 @@ export default function WorkspaceInsights({
         likes: 0,
         comments: 0,
         shares: 0,
-        platforms: { facebook: 0, instagram: 0, youtube: 0 }
       };
     }
     authorStatsMap[authorName].count += 1;
@@ -246,13 +243,10 @@ export default function WorkspaceInsights({
     authorStatsMap[authorName].likes += item.likes;
     authorStatsMap[authorName].comments += item.comments;
     authorStatsMap[authorName].shares += item.shares;
-    authorStatsMap[authorName].platforms[item.platform] += 1;
   });
 
   const authorStats: ContributorStat[] = Object.entries(authorStatsMap).map(([name, stats]) => {
     const performance = stats.views + stats.likes + stats.comments + stats.shares;
-    const topPlatform = (Object.entries(stats.platforms)
-      .sort((a, b) => b[1] - a[1])[0]?.[0] || 'facebook') as AuditItem['platform'];
     return {
       name,
       count: stats.count,
@@ -260,8 +254,7 @@ export default function WorkspaceInsights({
       likes: stats.likes,
       comments: stats.comments,
       shares: stats.shares,
-      performance,
-      topPlatform
+      performance
     };
   }).sort((a, b) => b.views - a.views);
 
@@ -756,7 +749,6 @@ export default function WorkspaceInsights({
                         </div>
                         <div>
                           <span className="font-semibold text-slate-700 block">{author.name}</span>
-                          <span className="text-slate-400 block text-[10px]">{platformLabels[author.topPlatform]} focus</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -822,7 +814,7 @@ export default function WorkspaceInsights({
                       {leaderboardLeader.name}
                     </div>
                     <div className="mt-1 text-[11px] text-[#6c3a2f]">
-                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts and {platformLabels[leaderboardLeader.topPlatform]} focus.
+                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} with {leaderboardLeader.count} posts.
                     </div>
                   </div>
                 </div>
@@ -891,7 +883,7 @@ export default function WorkspaceInsights({
                             )}
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                            {author.count} posts / {platformLabels[author.topPlatform]}
+                            {author.count} posts
                           </div>
                         </div>
                       </div>
