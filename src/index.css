@@ -669,6 +669,48 @@
   color: var(--text-muted);
 }
 
+#full-app-root[data-mode="dark"] .samarth-podium-panel {
+  background:
+    linear-gradient(180deg, rgba(12, 18, 30, 0.94) 0%, rgba(7, 10, 16, 0.9) 100%);
+  border-color: color-mix(in srgb, var(--sci-cyan) 22%, var(--palette-line));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 42px -28px rgba(0, 0, 0, 0.7);
+}
+
+#full-app-root[data-mode="dark"] .samarth-podium-slot {
+  background-color: rgba(8, 13, 23, 0.82);
+  border-color: color-mix(in srgb, currentColor 46%, rgba(255, 255, 255, 0.16));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+#full-app-root[data-mode="dark"] .samarth-podium-slot:hover {
+  background-color: rgba(12, 18, 30, 0.96);
+}
+
+#full-app-root[data-mode="dark"] .samarth-podium-name {
+  color: var(--text-main);
+}
+
+#full-app-root[data-mode="dark"] .samarth-podium-medal {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+#full-app-root[data-mode="dark"] .samarth-podium-block {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -18px 24px rgba(0, 0, 0, 0.16);
+}
+
+#full-app-root[data-mode="dark"] .bg-\[\#fffaf0\] {
+  background-color: rgba(245, 181, 68, 0.1);
+}
+
+#full-app-root[data-mode="dark"] .hover\:bg-\[\#fff7db\]:hover {
+  background-color: rgba(245, 181, 68, 0.16);
+}
+
 #workspace-insights .bg-white,
 #contributor-portal-view .bg-white,
 #entry-management-archive-section .bg-white {

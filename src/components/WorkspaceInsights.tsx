@@ -385,6 +385,11 @@ export default function WorkspaceInsights({
         contributor: contributorFilterValue,
         platform: selectedPlatform === 'all' ? 'All platforms' : platformLabels[selectedPlatform]
       },
+      leaderboard: {
+        metric: selectedContributorMetric,
+        metricLabel: contributorMetricLabels[selectedContributorMetric],
+        platform: contributorPlatformLabel
+      },
       metrics: {
         entries: activeEntryCount,
         views: totalViews,
@@ -402,7 +407,8 @@ export default function WorkspaceInsights({
         views: author.views,
         likes: author.likes,
         comments: author.comments,
-        shares: author.shares
+        shares: author.shares,
+        performance: author.performance
       })),
       topPosts: [...focusedTimelineData].sort((a, b) => b.views - a.views),
       savedPages
@@ -809,7 +815,7 @@ export default function WorkspaceInsights({
           </div>
 
           {podiumSlots.length > 0 && (
-            <div className="mb-5 rounded-xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4">
+            <div className="samarth-podium-panel mb-5 rounded-xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
                 {podiumSlots.map(slot => {
                   const metricValue = getContributorMetricValue(slot.author);
@@ -820,14 +826,14 @@ export default function WorkspaceInsights({
                       type="button"
                       aria-label={`Rank ${slot.rank}: ${slot.author.name}`}
                       onClick={() => setSelectedContributor(slot.author.name)}
-                      className={`group flex h-full flex-col justify-end rounded-lg border bg-white/90 p-3 text-center transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm ${
+                      className={`samarth-podium-slot group flex h-full flex-col justify-end rounded-lg border bg-white/90 p-3 text-center transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm ${
                         slot.rank === 1 ? 'sm:-mt-4' : ''
                       }`}
                       style={{ borderColor: `${slot.color}66` }}
                     >
                       <div className="min-w-0">
                         <div
-                          className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full border"
+                          className="samarth-podium-medal mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full border"
                           style={{
                             backgroundColor: slot.soft,
                             borderColor: slot.color,
@@ -836,15 +842,15 @@ export default function WorkspaceInsights({
                         >
                           <Medal className="h-6 w-6" />
                         </div>
-                        <div className="truncate text-sm font-bold text-slate-900">
+                        <div className="samarth-podium-name truncate text-sm font-bold text-slate-900">
                           {slot.author.name}
                         </div>
-                        <div className="mt-1 text-xs font-extrabold" style={{ color: slot.color }}>
+                        <div className="samarth-podium-score mt-1 text-xs font-extrabold" style={{ color: slot.color }}>
                           {formatContributorMetric(metricValue)}
                         </div>
                       </div>
                       <div
-                        className={`${slot.height} mt-3 flex items-end justify-center rounded-t-lg border px-4 pb-3 shadow-inner`}
+                        className={`samarth-podium-block ${slot.height} mt-3 flex items-end justify-center rounded-t-lg border px-4 pb-3 shadow-inner`}
                         style={{
                           background: `linear-gradient(180deg, ${slot.color} 0%, ${slot.color}dd 100%)`,
                           borderColor: slot.color

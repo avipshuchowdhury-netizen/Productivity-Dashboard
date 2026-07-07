@@ -2,6 +2,7 @@ import type { AuditItem, SocialPage } from '../types';
 import { auditItemPageUrl, auditItemPostUrl } from './socialLinks';
 
 type Platform = AuditItem['platform'];
+type ReportContributorMetric = 'performance' | 'posts' | 'views' | 'likes' | 'comments' | 'shares';
 
 export type ReportPlatformBreakdown = {
   platform: Platform;
@@ -19,6 +20,7 @@ export type ReportContributor = {
   likes: number;
   comments: number;
   shares: number;
+  performance: number;
 };
 
 export type WorkspaceReportInput = {
@@ -29,6 +31,11 @@ export type WorkspaceReportInput = {
     state: string;
     page: string;
     contributor: string;
+    platform: string;
+  };
+  leaderboard: {
+    metric: ReportContributorMetric;
+    metricLabel: string;
     platform: string;
   };
   metrics: {
@@ -141,6 +148,55 @@ const renderPlatformSection = (item: ReportPlatformBreakdown, maxViews: number) 
   `;
 };
 
+const contributorMetricValue = (contributor: ReportContributor, metric: ReportContributorMetric) => {
+  switch (metric) {
+    case 'performance':
+      return contributor.performance;
+    case 'posts':
+      return contributor.count;
+    case 'likes':
+      return contributor.likes;
+    case 'comments':
+      return contributor.comments;
+    case 'shares':
+      return contributor.shares;
+    default:
+      return contributor.views;
+  }
+};
+
+const medalSlots = [
+  { rank: 2, className: 'silver', height: 86 },
+  { rank: 1, className: 'gold', height: 116 },
+  { rank: 3, className: 'bronze', height: 72 }
+];
+
+const renderContributorPodium = (input: WorkspaceReportInput) => {
+  const byRank = new Map(input.contributors.slice(0, 3).map((contributor, index) => [index + 1, contributor]));
+  const cards = medalSlots
+    .map(slot => {
+      const contributor = byRank.get(slot.rank);
+      if (!contributor) return '';
+      const metricValue = contributorMetricValue(contributor, input.leaderboard.metric);
+
+      return `
+        <article class="podium-card podium-${slot.className}">
+          <div class="medal-icon">
+            <span class="medal-ring"></span>
+            <span class="medal-ribbon"></span>
+            <strong>${slot.rank}</strong>
+          </div>
+          <div class="podium-name">${escapeHtml(contributor.name)}</div>
+          <div class="podium-score">${formatCompact(metricValue)}</div>
+          <div class="podium-step" style="height:${slot.height}px"><strong>${slot.rank}</strong></div>
+        </article>
+      `;
+    })
+    .join('');
+
+  return cards || '<p class="empty-state">No contributor data available.</p>';
+};
+
 const renderReportHtml = (input: WorkspaceReportInput) => {
   const maxPlatformViews = Math.max(...input.platformBreakdown.map(item => item.views), 1);
   const topContributorRows = input.contributors.slice(0, 8).map((contributor, index) => `
@@ -148,6 +204,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       <td>${index + 1}</td>
       <td>${escapeHtml(contributor.name)}</td>
       <td>${contributor.count}</td>
+      <td>${formatCompact(contributorMetricValue(contributor, input.leaderboard.metric))}</td>
       <td>${formatCompact(contributor.views)}</td>
       <td>${formatCompact(contributor.likes + contributor.comments + contributor.shares)}</td>
     </tr>
@@ -285,6 +342,25 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         letter-spacing: 0.1em;
         text-transform: uppercase;
       }
+      .section-heading-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .section-heading-row h2 {
+        margin-bottom: 0;
+      }
+      .leaderboard-context {
+        color: #8f6b61;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        line-height: 1.45;
+        text-align: right;
+        text-transform: uppercase;
+      }
       .platforms {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -387,6 +463,119 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         margin-top: 3px;
         font-size: 13px;
       }
+      .contributor-podium {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: end;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .podium-card {
+        border: 1px solid #ead4c8;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf7 100%);
+        padding: 12px;
+        text-align: center;
+        page-break-inside: avoid;
+      }
+      .podium-gold {
+        border-color: #f5b544;
+        transform: translateY(-6px);
+      }
+      .podium-silver {
+        border-color: #94a3b8;
+      }
+      .podium-bronze {
+        border-color: #b7793d;
+      }
+      .medal-icon {
+        position: relative;
+        width: 38px;
+        height: 42px;
+        margin: 0 auto 7px;
+      }
+      .medal-ring {
+        position: absolute;
+        left: 9px;
+        top: 13px;
+        width: 20px;
+        height: 20px;
+        border: 2px solid currentColor;
+        border-radius: 999px;
+        background: #ffffff;
+      }
+      .medal-ribbon {
+        position: absolute;
+        left: 12px;
+        top: 0;
+        width: 14px;
+        height: 18px;
+        clip-path: polygon(0 0, 100% 0, 78% 100%, 50% 78%, 22% 100%);
+        background: currentColor;
+        opacity: 0.82;
+      }
+      .medal-icon strong {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 17px;
+        color: #241815;
+        font-size: 9px;
+        line-height: 1;
+      }
+      .podium-gold .medal-icon,
+      .podium-gold .podium-score {
+        color: #d29518;
+      }
+      .podium-silver .medal-icon,
+      .podium-silver .podium-score {
+        color: #64748b;
+      }
+      .podium-bronze .medal-icon,
+      .podium-bronze .podium-score {
+        color: #9a5b24;
+      }
+      .podium-name {
+        overflow: hidden;
+        color: #241815;
+        font-size: 12px;
+        font-weight: 900;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .podium-score {
+        margin-top: 3px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .podium-step {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        margin-top: 10px;
+        border-radius: 10px 10px 0 0;
+        padding-bottom: 10px;
+      }
+      .podium-step strong {
+        color: #ffffff;
+        font-size: 28px;
+        line-height: 1;
+      }
+      .podium-gold .podium-step {
+        background: linear-gradient(180deg, #f5b544, #d99a22);
+      }
+      .podium-silver .podium-step {
+        background: linear-gradient(180deg, #94a3b8, #64748b);
+      }
+      .podium-bronze .podium-step {
+        background: linear-gradient(180deg, #b7793d, #8a4f22);
+      }
+      .empty-state {
+        margin: 0;
+        color: #8f6b61;
+        font-size: 11px;
+        font-weight: 800;
+      }
       .report-table {
         width: 100%;
         border-collapse: collapse;
@@ -475,6 +664,7 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
           <div><span>State</span><strong>${escapeHtml(input.filters.state)}</strong></div>
           <div><span>Page</span><strong>${escapeHtml(input.filters.page)}</strong></div>
           <div><span>Contributor</span><strong>${escapeHtml(input.filters.contributor)}</strong></div>
+          <div><span>Leaderboard</span><strong>${escapeHtml(input.leaderboard.metricLabel)} - ${escapeHtml(input.leaderboard.platform)}</strong></div>
         </div>
         <div class="metrics">
           ${metricCard('Contents Published', formatNumber(input.metrics.entries), 'active records in range')}
@@ -496,10 +686,16 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       </section>
 
       <section class="section">
-        <h2>Top Contributors</h2>
+        <div class="section-heading-row">
+          <h2>Contributor Podium</h2>
+          <div class="leaderboard-context">${escapeHtml(input.leaderboard.metricLabel)} - ${escapeHtml(input.leaderboard.platform)}</div>
+        </div>
+        <div class="contributor-podium">
+          ${renderContributorPodium(input)}
+        </div>
         <table class="report-table">
-          <thead><tr><th>#</th><th>Contributor</th><th>Posts</th><th>Views</th><th>Engagement</th></tr></thead>
-          <tbody>${topContributorRows || '<tr><td colspan="5">No contributor data available.</td></tr>'}</tbody>
+          <thead><tr><th>#</th><th>Contributor</th><th>Posts</th><th>${escapeHtml(input.leaderboard.metricLabel)}</th><th>Views</th><th>Engagement</th></tr></thead>
+          <tbody>${topContributorRows || '<tr><td colspan="6">No contributor data available.</td></tr>'}</tbody>
         </table>
       </section>
 
