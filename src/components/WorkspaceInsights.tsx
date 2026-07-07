@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuditItem, STATES_LIST, PAGES_LIST, SocialPage } from '../types';
-import { TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, Trophy, FileText } from 'lucide-react';
+import { ArrowDown, ArrowUp, Minus, TrendingUp, Users, Target, ThumbsUp, Smartphone, Play, MapPin, Globe, ExternalLink, MessageCircle, Share2, FileText } from 'lucide-react';
 import { generateWorkspaceReportPdf } from '../utils/reportExport';
 import { socialPageUrlForPlatform } from '../utils/socialLinks';
 
@@ -23,6 +23,12 @@ type ContributorStat = {
   comments: number;
   shares: number;
   performance: number;
+};
+
+type RankMovement = {
+  direction: 'up' | 'down' | 'same' | 'new';
+  delta: number;
+  label: string;
 };
 
 export default function WorkspaceInsights({ 
@@ -191,23 +197,37 @@ export default function WorkspaceInsights({
     startDate.setDate(startDate.getDate() - days);
     return `${formatDateLabel(startDate)} to ${formatDateLabel(refDate)}`;
   };
+  const getCurrentPeriodRange = () => {
+    if (selectedTimeline === 'custom') {
+      if (!customStartDate || !customEndDate) return null;
+      const start = new Date(customStartDate);
+      const end = new Date(customEndDate);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return null;
+      return { start, end };
+    }
+
+    const days = timelineDays[selectedTimeline] || 7;
+    const start = new Date(refDate);
+    start.setDate(start.getDate() - days);
+    return { start, end: new Date(refDate) };
+  };
+  const currentPeriodRange = getCurrentPeriodRange();
+  const previousPeriodRange = currentPeriodRange
+    ? (() => {
+        const durationMs = Math.max(86_400_000, currentPeriodRange.end.getTime() - currentPeriodRange.start.getTime());
+        const end = new Date(currentPeriodRange.start.getTime() - 1);
+        const start = new Date(end.getTime() - durationMs);
+        return { start, end };
+      })()
+    : null;
 
   // Timeline + State + Page Filter
   const filteredTimelineStatePageData = activeAuditItemsWithDefaults.filter(item => {
     // 1. Timeline filter
     const itemTime = new Date(item.publishedAt).getTime();
-    let matchesTimeline = true;
-    if (selectedTimeline !== 'custom') {
-      const cutOff = new Date(refDate);
-      cutOff.setDate(cutOff.getDate() - (timelineDays[selectedTimeline] || 7));
-      matchesTimeline = itemTime >= cutOff.getTime();
-    } else if (selectedTimeline === 'custom') {
-      if (customStartDate && customEndDate) {
-        const start = new Date(customStartDate).getTime();
-        const end = new Date(customEndDate).getTime();
-        matchesTimeline = itemTime >= start && itemTime <= end;
-      }
-    }
+    const matchesTimeline = currentPeriodRange
+      ? itemTime >= currentPeriodRange.start.getTime() && itemTime <= currentPeriodRange.end.getTime()
+      : true;
 
     // 2. State Filter
     const matchesState = selectedState === 'All States' || item.state === selectedState;
@@ -217,6 +237,15 @@ export default function WorkspaceInsights({
 
     return matchesTimeline && matchesState && matchesPage;
   });
+  const previousTimelineStatePageData = previousPeriodRange
+    ? activeAuditItemsWithDefaults.filter(item => {
+        const itemTime = new Date(item.publishedAt).getTime();
+        const matchesTimeline = itemTime >= previousPeriodRange.start.getTime() && itemTime <= previousPeriodRange.end.getTime();
+        const matchesState = selectedState === 'All States' || item.state === selectedState;
+        const matchesPage = selectedPage === 'All Pages' || item.page === selectedPage;
+        return matchesTimeline && matchesState && matchesPage;
+      })
+    : [];
 
   const filteredTimelineAndStateData = filteredTimelineStatePageData.filter(item => (
     selectedPlatform === 'all' || item.platform === selectedPlatform
@@ -224,45 +253,53 @@ export default function WorkspaceInsights({
   const contributorLeaderboardData = selectedContributorPlatform === 'all'
     ? filteredTimelineStatePageData
     : filteredTimelineStatePageData.filter(item => item.platform === selectedContributorPlatform);
+  const previousContributorLeaderboardData = selectedContributorPlatform === 'all'
+    ? previousTimelineStatePageData
+    : previousTimelineStatePageData.filter(item => item.platform === selectedContributorPlatform);
+
+  const buildContributorStats = (items: AuditItem[]): ContributorStat[] => {
+    const statsMap: Record<string, {
+      count: number;
+      views: number;
+      likes: number;
+      comments: number;
+      shares: number;
+    }> = {};
+
+    items.forEach(item => {
+      const authorName = item.author || 'Unknown Contributor';
+      if (!statsMap[authorName]) {
+        statsMap[authorName] = {
+          count: 0,
+          views: 0,
+          likes: 0,
+          comments: 0,
+          shares: 0,
+        };
+      }
+      statsMap[authorName].count += 1;
+      statsMap[authorName].views += item.views;
+      statsMap[authorName].likes += item.likes;
+      statsMap[authorName].comments += item.comments;
+      statsMap[authorName].shares += item.shares;
+    });
+
+    return Object.entries(statsMap).map(([name, stats]) => {
+      const performance = stats.views + stats.likes + stats.comments + stats.shares;
+      return {
+        name,
+        count: stats.count,
+        views: stats.views,
+        likes: stats.likes,
+        comments: stats.comments,
+        shares: stats.shares,
+        performance
+      };
+    }).sort((a, b) => b.views - a.views);
+  };
 
   // Contributor stats are ranked from their own platform filter, defaulting to all platforms.
-  const authorStatsMap: Record<string, {
-    count: number;
-    views: number;
-    likes: number;
-    comments: number;
-    shares: number;
-  }> = {};
-  contributorLeaderboardData.forEach(item => {
-    const authorName = item.author || 'Unknown Contributor';
-    if (!authorStatsMap[authorName]) {
-      authorStatsMap[authorName] = {
-        count: 0,
-        views: 0,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-      };
-    }
-    authorStatsMap[authorName].count += 1;
-    authorStatsMap[authorName].views += item.views;
-    authorStatsMap[authorName].likes += item.likes;
-    authorStatsMap[authorName].comments += item.comments;
-    authorStatsMap[authorName].shares += item.shares;
-  });
-
-  const authorStats: ContributorStat[] = Object.entries(authorStatsMap).map(([name, stats]) => {
-    const performance = stats.views + stats.likes + stats.comments + stats.shares;
-    return {
-      name,
-      count: stats.count,
-      views: stats.views,
-      likes: stats.likes,
-      comments: stats.comments,
-      shares: stats.shares,
-      performance
-    };
-  }).sort((a, b) => b.views - a.views);
+  const authorStats = buildContributorStats(contributorLeaderboardData);
 
   const contributorOptions = Array.from(new Set(
     filteredTimelineStatePageData.map(item => item.author || 'Unknown Contributor')
@@ -291,6 +328,32 @@ export default function WorkspaceInsights({
   const formatContributorMetric = (value: number) => formatCompact(value);
   const rankedAuthorStats = [...authorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
   const maxContributorMetric = Math.max(...rankedAuthorStats.map(getContributorMetricValue), 1);
+  const previousAuthorStats = buildContributorStats(previousContributorLeaderboardData);
+  const previousRankedAuthorStats = [...previousAuthorStats].sort((a, b) => getContributorMetricValue(b) - getContributorMetricValue(a));
+  const previousRankByName = new Map(previousRankedAuthorStats.map((author, index) => [author.name, index + 1]));
+  const podiumStats = rankedAuthorStats.slice(0, 3);
+  const getRankMovement = (name: string, currentRank: number): RankMovement => {
+    const previousRank = previousRankByName.get(name);
+    if (!previousRank) return { direction: 'new', delta: 0, label: 'New' };
+    const delta = previousRank - currentRank;
+    if (delta > 0) return { direction: 'up', delta, label: `+${delta}` };
+    if (delta < 0) return { direction: 'down', delta: Math.abs(delta), label: `-${Math.abs(delta)}` };
+    return { direction: 'same', delta: 0, label: 'Hold' };
+  };
+  const getGapToOvertake = (index: number) => {
+    if (index <= 0 || !rankedAuthorStats[index - 1] || !rankedAuthorStats[index]) return 0;
+    return Math.max(1, getContributorMetricValue(rankedAuthorStats[index - 1]) - getContributorMetricValue(rankedAuthorStats[index]) + 1);
+  };
+  const getLeaderMargin = () => {
+    if (rankedAuthorStats.length < 2) return 0;
+    return Math.max(0, getContributorMetricValue(rankedAuthorStats[0]) - getContributorMetricValue(rankedAuthorStats[1]));
+  };
+  const getRankMovementClasses = (movement: RankMovement) => {
+    if (movement.direction === 'up') return 'border-[#34c771]/40 bg-[#34c771]/10 text-[#168542]';
+    if (movement.direction === 'down') return 'border-[#fb2d54]/35 bg-[#fb2d54]/10 text-[#b81235]';
+    if (movement.direction === 'new') return 'border-[#477ee9]/35 bg-[#477ee9]/10 text-[#285bbf]';
+    return 'border-slate-200 bg-white text-slate-500';
+  };
 
   // Metrics calculations
   const totalViews = focusedTimelineData.reduce((acc, item) => acc + item.views, 0);
@@ -325,8 +388,6 @@ export default function WorkspaceInsights({
     shares: items.reduce((acc, item) => acc + item.shares, 0)
   }));
 
-  const leaderboardLeader = rankedAuthorStats[0] || null;
-  const leaderScore = leaderboardLeader ? getContributorMetricValue(leaderboardLeader) : 0;
   const getRankLabel = (index: number) => {
     if (index === 0) return 'Champion';
     if (index === 1) return 'Runner-up';
@@ -793,35 +854,78 @@ export default function WorkspaceInsights({
             </div>
           </div>
 
-          {leaderboardLeader && (
-            <button
-              type="button"
-              onClick={() => setSelectedContributor(leaderboardLeader.name)}
-              className="mb-5 w-full rounded-lg border border-[#f8a4a4] bg-[linear-gradient(135deg,#fbdfd9_0%,#fef5f3_55%,#e6f0ff_100%)] p-4 text-left transition hover:brightness-[0.99]"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-12 w-12 rounded-full bg-[#f73b20] text-white flex items-center justify-center shrink-0">
-                    <Trophy className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f73b20]">Current Leader</div>
-                    <div className="mt-1 text-2xl font-display font-semibold leading-none text-[#360802] truncate">
-                      {leaderboardLeader.name}
+          {podiumStats.length > 0 && (
+            <div className="mb-5 grid gap-3 lg:grid-cols-3">
+              {podiumStats.map((author, index) => {
+                const metricValue = getContributorMetricValue(author);
+                const rankAccent = getRankAccent(index);
+                const rankMovement = getRankMovement(author.name, index + 1);
+                const gapToOvertake = getGapToOvertake(index);
+                const leaderMargin = getLeaderMargin();
+
+                return (
+                  <button
+                    key={author.name}
+                    type="button"
+                    onClick={() => setSelectedContributor(author.name)}
+                    className={`rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
+                      index === 0
+                        ? 'border-[#f8a4a4] bg-[linear-gradient(135deg,#fbdfd9_0%,#fffaf8_58%,#e6f0ff_100%)]'
+                        : 'border-slate-200 bg-slate-50 hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold text-white"
+                        style={{ backgroundColor: rankAccent }}
+                      >
+                        #{index + 1}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase ${getRankMovementClasses(rankMovement)}`}>
+                        {rankMovement.direction === 'up' ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : rankMovement.direction === 'down' ? (
+                          <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <Minus className="h-3 w-3" />
+                        )}
+                        {rankMovement.label}
+                      </span>
                     </div>
-                    <div className="mt-1 text-[11px] text-[#6c3a2f]">
-                      Leading on {contributorMetricLabels[selectedContributorMetric].toLowerCase()} across {contributorPlatformLabel.toLowerCase()} with {leaderboardLeader.count} posts.
+                    <div className="mt-3 min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        {index === 0 ? 'Race Leader' : 'Chasing Position'}
+                      </div>
+                      <div className="mt-1 truncate text-base font-display font-semibold text-slate-900">
+                        {author.name}
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="text-right lg:min-w-44">
-                  <div className="rounded-lg bg-[#fffaf8] border border-[#f8a4a4] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-[#9b6255]">Top Score</div>
-                    <div className="mt-1 text-xl font-display font-semibold text-[#360802]">{formatContributorMetric(leaderScore)}</div>
-                  </div>
-                </div>
-              </div>
-            </button>
+                    <div className="mt-3 flex items-end justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {contributorMetricLabels[selectedContributorMetric]}
+                        </div>
+                        <div className="text-2xl font-display font-semibold text-[#360802]">
+                          {formatContributorMetric(metricValue)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {index === 0 ? 'Lead' : 'Gap'}
+                        </div>
+                        <div className="text-sm font-extrabold" style={{ color: rankAccent }}>
+                          {index === 0
+                            ? rankedAuthorStats.length > 1
+                              ? `+${formatContributorMetric(leaderMargin)}`
+                              : 'Solo'
+                            : formatContributorMetric(gapToOvertake)}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
 
           {rankedAuthorStats.length > 0 ? (
@@ -833,6 +937,8 @@ export default function WorkspaceInsights({
                 const isHovered = hoveredContributor === author.name;
                 const rankAccent = getRankAccent(index);
                 const rankLabel = getRankLabel(index);
+                const rankMovement = getRankMovement(author.name, index + 1);
+                const gapToOvertake = getGapToOvertake(index);
 
                 return (
                   <button
@@ -877,6 +983,16 @@ export default function WorkspaceInsights({
                                 {rankLabel}
                               </span>
                             )}
+                            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getRankMovementClasses(rankMovement)}`}>
+                              {rankMovement.direction === 'up' ? (
+                                <ArrowUp className="h-3 w-3" />
+                              ) : rankMovement.direction === 'down' ? (
+                                <ArrowDown className="h-3 w-3" />
+                              ) : (
+                                <Minus className="h-3 w-3" />
+                              )}
+                              {rankMovement.label}
+                            </span>
                           </div>
                           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
                             {author.count} posts
@@ -889,6 +1005,9 @@ export default function WorkspaceInsights({
                         </div>
                         <div className="text-[10px] text-slate-400 uppercase tracking-wider">
                           {contributorMetricLabels[selectedContributorMetric]}
+                        </div>
+                        <div className="mt-1 text-[10px] font-bold text-slate-500">
+                          {index === 0 ? 'Top spot' : `Gap ${formatContributorMetric(gapToOvertake)}`}
                         </div>
                       </div>
                     </div>
