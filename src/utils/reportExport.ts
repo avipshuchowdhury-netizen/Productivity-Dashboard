@@ -231,6 +231,82 @@ const renderExecutiveSnapshot = (input: WorkspaceReportInput) => {
   `;
 };
 
+const renderTopPostRow = (post: AuditItem, index: number, input: WorkspaceReportInput) => {
+  const postUrl = auditItemPostUrl(post);
+  const pageUrl = auditItemPageUrl(post, input.savedPages);
+  const pageLabel = post.page || 'No page';
+
+  return `
+    <tr>
+      <td>${index + 1}</td>
+      <td>
+        <strong>${anchor(post.title, postUrl, 'post-link')}</strong>
+        <small>${postUrl ? anchor('Open live post', postUrl, 'inline-link') : 'No live post URL attached'} - ${escapeHtml(post.format)}</small>
+      </td>
+      <td>${platformLogo(post.platform)} ${escapeHtml(platformMeta[post.platform].label)}</td>
+      <td>${anchor(pageLabel, pageUrl, 'page-link')}<small>${escapeHtml(post.state || 'No state')}</small></td>
+      <td>${escapeHtml(post.author || 'Unknown Contributor')}</td>
+      <td>${formatCompact(post.views)}</td>
+      <td>${formatCompact(post.likes + post.comments + post.shares)}</td>
+    </tr>
+  `;
+};
+
+const renderTopPostsByPage = (input: WorkspaceReportInput) => {
+  const groupedPosts = new Map<string, AuditItem[]>();
+
+  input.topPosts.forEach(post => {
+    const pageName = post.page || 'No page';
+    const currentPosts = groupedPosts.get(pageName) || [];
+    currentPosts.push(post);
+    groupedPosts.set(pageName, currentPosts);
+  });
+
+  const pageSections = Array.from(groupedPosts.entries())
+    .map(([pageName, posts]) => {
+      const sortedPosts = [...posts].sort((a, b) => b.views - a.views);
+      const totalViews = sortedPosts.reduce((sum, post) => sum + post.views, 0);
+      const totalEngagement = sortedPosts.reduce((sum, post) => sum + post.likes + post.comments + post.shares, 0);
+      const pageUrl = auditItemPageUrl(sortedPosts[0], input.savedPages);
+
+      return {
+        pageName,
+        pageUrl,
+        totalViews,
+        totalEngagement,
+        posts: sortedPosts.slice(0, 3)
+      };
+    })
+    .sort((a, b) => b.totalViews - a.totalViews);
+
+  if (pageSections.length === 0) return '<p class="empty-state">No content data available.</p>';
+
+  return pageSections.map(section => `
+    <article class="page-posts-card">
+      <div class="page-posts-heading">
+        <div>
+          <h3>${anchor(section.pageName, section.pageUrl, 'page-link')}</h3>
+          <p>${formatCompact(section.totalViews)} page views - ${formatCompact(section.totalEngagement)} engagement</p>
+        </div>
+        <span>Top 3 posts</span>
+      </div>
+      <table class="report-table content-table page-posts-table">
+        <colgroup>
+          <col class="rank-column" />
+          <col class="content-column" />
+          <col class="platform-column" />
+          <col />
+          <col />
+          <col class="small-number-column" />
+          <col class="small-number-column" />
+        </colgroup>
+        <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Page</th><th>Contributor</th><th>Views</th><th>Eng.</th></tr></thead>
+        <tbody>${section.posts.map((post, index) => renderTopPostRow(post, index, input)).join('')}</tbody>
+      </table>
+    </article>
+  `).join('');
+};
+
 const renderReportHtml = (input: WorkspaceReportInput) => {
   const maxPlatformViews = Math.max(...input.platformBreakdown.map(item => item.views), 1);
   const topContributorRows = input.contributors.slice(0, 8).map((contributor, index) => `
@@ -243,26 +319,6 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       <td>${formatCompact(contributor.likes + contributor.comments + contributor.shares)}</td>
     </tr>
   `).join('');
-  const topPostRows = input.topPosts.slice(0, 10).map((post, index) => {
-    const postUrl = auditItemPostUrl(post);
-    const pageUrl = auditItemPageUrl(post, input.savedPages);
-    const pageLabel = post.page || 'No page';
-
-    return `
-      <tr>
-        <td>${index + 1}</td>
-        <td>
-          <strong>${anchor(post.title, postUrl, 'post-link')}</strong>
-          <small>${postUrl ? anchor('Open live post', postUrl, 'inline-link') : 'No live post URL attached'} - ${escapeHtml(post.format)}</small>
-        </td>
-        <td>${platformLogo(post.platform)} ${escapeHtml(platformMeta[post.platform].label)}</td>
-        <td>${anchor(pageLabel, pageUrl, 'page-link')}<small>${escapeHtml(post.state || 'No state')}</small></td>
-        <td>${escapeHtml(post.author || 'Unknown Contributor')}</td>
-        <td>${formatCompact(post.views)}</td>
-        <td>${formatCompact(post.likes + post.comments + post.shares)}</td>
-      </tr>
-    `;
-  }).join('');
 
   return `<!doctype html>
 <html>
@@ -548,6 +604,51 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
         display: block;
         margin-top: 3px;
         font-size: 13px;
+      }
+      .page-posts-card {
+        margin-top: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 12px;
+        page-break-inside: avoid;
+      }
+      .page-posts-card:first-child {
+        margin-top: 0;
+      }
+      .page-posts-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .page-posts-heading h3 {
+        margin: 0;
+        color: #111827;
+        font-size: 13px;
+        line-height: 1.2;
+      }
+      .page-posts-heading p {
+        margin: 3px 0 0;
+        color: #526071;
+        font-size: 9px;
+        font-weight: 800;
+      }
+      .page-posts-heading span {
+        border: 1px solid #ffd1c8;
+        border-radius: 999px;
+        background: #fff7f2;
+        color: #d7351c;
+        padding: 5px 8px;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .page-posts-table {
+        font-size: 9.5px;
       }
       .contributor-podium {
         display: grid;
@@ -840,20 +941,11 @@ const renderReportHtml = (input: WorkspaceReportInput) => {
       </section>
 
       <section class="section">
-        <h2>Top Content</h2>
-        <table class="report-table content-table">
-          <colgroup>
-            <col class="rank-column" />
-            <col class="content-column" />
-            <col class="platform-column" />
-            <col />
-            <col />
-            <col class="small-number-column" />
-            <col class="small-number-column" />
-          </colgroup>
-          <thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Page</th><th>Contributor</th><th>Views</th><th>Eng.</th></tr></thead>
-          <tbody>${topPostRows || '<tr><td colspan="7">No content data available.</td></tr>'}</tbody>
-        </table>
+        <div class="section-heading-row">
+          <h2>Top Posts By Page</h2>
+          <div class="leaderboard-context">Top 3 posts per page</div>
+        </div>
+        ${renderTopPostsByPage(input)}
       </section>
 
       <footer>Prepared by SAMARTH Workspace - export reflects selected dashboard filters at generation time.</footer>
